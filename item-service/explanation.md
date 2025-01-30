@@ -1,0 +1,70 @@
+==item-service==
+
+- 요구사항 분석 - 서비스 제공 흐름
+    - 타임리프 쓺
+    - 검은 박스가 컨트롤러
+    - 하얀 박스가 뷰이다.
+    - 컨트롤러를 통해 뷰가 렌더링되도록 항상 설계함
+- Item class
+    - 핵심 도메인에 @Data를 쓰는건 위험할 수 있다. @Getter, @Setter로만 하자
+- ItemRepository class
+    - @Repository를 달아줘서 component scan의 대상이 된다
+    - 편의상 HashMap 사용 (동시성 고려 x, 실무는 ConcurrentHashMap 씀, long도 atomic long 써야함)
+    - 스프링은 싱글톤이라 큰 문제 없긴한데 일단 static으로 선언함
+- 참고
+    - 부트스트랩(Bootstrap)은 웹사이트를 쉽게 만들 수 있게 도와주는 HTML, CSS, JS 프레임워크이다. 하나의 CSS로 휴대폰, 태블릿, 데스크탑까지 다양한 기기에서 작동한다. 다양한 기능을 제공하여 사용자가 쉽게 웹사이 트를 제작, 유지, 보수할 수 있도록 도와준다
+    - 정적(static) 리소스에 있는 HTML은 GET일때만 받는거다. POST로 접근하면 에러뜸
+- BasicItemController class
+    - BasicItemController 생성자 메서드 만들고 @Autowired 붙이면 해당 클래스가 스프링빈에 등록될 때 생성자 주입으로 itemRepository가 스프링빈에 같이 주입이 됨. 근데 이 클래스처럼 생성자가 딱 하나만 있으면 @Autowired 생략 가능.
+    - 더 나아가 @RequiredArgsConstructor 까지 사용하면 생성자를 제거해도 됨. (spring02)에서 다룬 내용
+    - String item 메서드의 return "basic/item"은 저 경로로 뷰를 추가한거임 (당연)
+    - 정적에 위치한 items.html을 동적으로 쓰기 위해 타임리프를 사용할것이다. 그러기 위해 *templates/basic*에 items.html을 복붙한 뒤 타임리프 형태로 수정한다
+        - 타임리프 사용 선언과 속성 변경
+        - `<html xmlns:th="http://www.thymeleaf.org">`
+        - `th:href="@{/css/bootstrap.min.css}"`
+        - HTML을 그대로 볼 때는 href 속성이 사용되고, *뷰 템플릿을 거치면 th:href 의 값이 href 로 대체되면서 동적으로 변경*할 수 있다. 즉 핵심은 th:xxx 가 붙은 부분은 서버사이드에서 렌더링 되고, 기존 것을 대체한다. th:xxx 이 없으면 기존 html 의 xxx 속성이 그대로 사용된다.
+        - 예를 들어 `<td th:text="${item.price}">10000</td>`은 10000을 ${item.price} 의 값으로 변경한다.
+    - JSP는 오직 서버를 통해서 열어야 한다. 그러나 타임리프처럼 순수 HTML을 그대로 유지하면서 뷰 템플릿도 사용할 수 있는 특징을 네츄럴 템플릿이라 함
+        - 장점은 서버를 안 띄우고도 바로 절대경로를 로컬에서 띄우고 바로 수정을 확인할 수 있다는 점임
+    - /add의 경우 실제 저장할땐 post, 폼을 열땐 get 방식으로 동작하도록 @PostMapping과 @GetMapping을 "/add"에 대해 적용한다.
+        - addItem 메서드에 붙는데 버전을 여러개 만들기 위해 맨 마지막 addItem 버전에만 어노테이션 붙인거임
+    - addItemV1 : @RequestParam String itemName : itemName 요청 파라미터 데이터를 해당 변수에 받는다.
+    - addItemV2 : @RequestParam 으로 변수를 하나하나 받아서 Item 을 생성하는 과정은 불편했다. 이번에는 @ModelAttribute 를 사용해서 한번에 처리
+    - *@PathVariable*
+        - URL의 일부를 변수처럼 사용하여 데이터를 전달
+        - RESTful API에서 자원을 식별할 때 자주 사용됨
+        - 어떤 상품을 수정할지 그 id가 넘어와야 되면 이걸 씀
+        - 데이터 출처 : URL 경로 변수
+        - url 예시 : /user/{id} -> /user/100
+        - @GetMapping("/user/{id}") public String getUser(@PathVariable int id)
+    - *@RequestParam*
+        - URL의 쿼리 스트링 파라미터를 받아올 때 사용
+        - 주로 필터링, 검색, 정렬 등의 옵션을 제공할 때 유용
+        - 데이터 출처 : 쿼리 스트링(파라미터)
+        - url 예시 : /user?id=100
+        - @GetMapping("/user")public String getUser( @RequestParam int id)
+        - 즉 id를 쿼리 스트링으로 전달
+    - 즉, RESTful API에서는 @PathVariable을 선호하지만, 사용자 입력을 받는 경우에는 @RequestParam을 더 많이 사용합니다
+        - @PathVariable은 URL 템플릿에서 동적으로 변하는 값들을 추출하는데 사용합니다. 주로 리소스 식별자들을 얻는데 사용하는 것 같습니다.
+        - ex) users/1 : 식별자가 1인 유저를 조회해야할 때 => @PathVariable
+        - @RequestParam은 쿼리 파라미터 혹은 쿼리 스트링이나 폼 데이터를 바인딩할 때 사용하는 것 같습니다.
+        - ex) users?name=스프링: name이 "스프링"인 user를 조회해야 할 때 => @RequestParam
+        - @ModelAttribute는 폼 데이터를 자바 객체로 바인딩할 때, 해당 객체를 모델로 하여 뷰로 전달할 때 사용하기 좋은 것 같습니다.
+        - 그래서 저는 @PathVariable은 위의 예시와 같이 URL 템플릿에서의 변화하는 값을 바인딩할 때 사용합니다. 그리고 @RequestParam은 조회 API 에서의 쿼리파라미터 바인딩이나 간단한 폼 데이터를 받을 때 사용하고, 객체로 받고 싶을 때는 @ModelAttribute를 사용하는 것 같습니다
+    - edit
+        - 상품 수정 버튼을 클릭하면 상품 수정 폼에 @GetMapping으로 들어감
+            - GET /basic/items/1/edit
+            - itemId가 1인 데이터를 조회
+            - basic/editForm.html 화면을 클라이언트에게 반환, 사용자는 화면에서 데이터를 수정 가능
+        - 그 폼에서 상품 수정 후 저장 버튼을 누르면 @PostMapping으로 입력한 데이터를 서버로 보내고, 기존 데이터를 업데이트 한 후, /basic/items/{itemId} 페이지로 리디렉트한다.
+            - POST /basic/items/1/edit
+            - Content-Type: application/x-www-form-urlencoded name=NewItem&price=2000
+    - /add에서 마지막에 보냈던 통신은 POST이기 때문에 새로고침을 하면 마지막 행위를 반복하기때문에 상품이 중복해서 저장됨. (이 챕터 초반에 forward vs redirect 참고)
+        - 새로 고침 문제를 해결하려면 상품 저장 후에 뷰 템플릿으로 이동하는 것이 아니라, 상품 상세 화면으로 리다이렉트를 호출해주면 된다
+        - addItemV5 내용이다
+        - 즉 리다이렉트는 GET이기에 마지막 행위를 반복해도 문제없게 됨
+        - 이런 문제 해결방식을 *PRG (Post/Redirect/GET)* 이라 함
+    - addItemV6
+        - RedirectAttributes를 사용해 url 인코딩도 안전히 해주고
+        - 리턴하는 {itemId}는 addAttribute해줬던 saveItem.getId()가 대체된다.
+        - status는 리턴될때 명시를 안해주면 ?status=true라는 쿼리가 붙게 된다. 이걸로 리다이렉트 결과를 만든다
