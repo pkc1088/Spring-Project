@@ -20,7 +20,9 @@ bin/
 ### IntelliJ IDEA ###
 .idea
 .DS_Store
+._.DS_Store
 **/.DS_Store
+**/._.DS_Store
 
 *.iws
 *.iml
