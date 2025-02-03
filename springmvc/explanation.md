@@ -1,3 +1,167 @@
+==spring04 - springmvc==
+- 이제 JSP를 쓰지않고 Thymeleaf를 이용한 Spring MVC를 구축함
+- 로그 LEVEL: TRACE > DEBUG > INFO > WARN > ERROR
+  - *@Slf4j* 붙이면 Log 쓸 수 있음
+  - 개발할땐 Debug 레벨, 운영할 땐 INFO 정도로 셋팅함 (그러면 Trace, Debug 로그를 안찍음)
+  - 근데 sout은 레벨 상관없이 다 출력하기에 안좋다. 요청이 수만개 있으면 로그가 지저분하게 다 남아버리니
+  - 또 sout은 콘솔에만 남길수 있는데 로그는 파일로 뽑아낼 수 있다
+  - log.debug("String concat log=" + name); 이 방식을 쓰면 안됨. debug 레벨 까지 안쓰더라도 자바 특성상 name을 "spring"으로 치환하고 저 두 문자열을 합치는것 까지 해버려 리소스 낭비임.
+- *@RestController*
+  - @Controller는 반환 값이 String 이면 뷰 이름으로 인식된다. 그래서 뷰를 찾고 뷰가 랜더링 된다.
+  - @RestController는 반환 값으로 뷰를 찾는 것이 아니라, HTTP 메시지 바디에 바로 입력한다. 따라서 실행 결과로 ok 메세지를 받을 수 있다.
+  - @Controller 대신에 @RestController 애노테이션을 사용하면, 해당 컨트롤러에 모두 *@ResponseBody 가 적용되는 효과가 있다. 따라서 뷰 템플릿을 사용하는 것이 아니라, HTTP 메시지 바디에 직접 데이터를 입력한다*.
+  - 참고로 @ResponseBody 는 클래스 레벨에 두면 전체 메서드에 적용되는데, @RestController 에노테이션 안에 @ResponseBody 가 적용되어 있다.
+  - RestAPI 만들때 핵심적인 기능임
+- *PathVariable (경로변수)*
+  - @GetMapping(*"/mapping/{userId}"*)
+  - public String mappingPath(*@PathVariable("userId")* String data) {}
+  - 요청 url이 /mapping/userA 이런식으로 url 자체에 값이 들어와 있는 경우를 처리한다.
+  - 그걸 pathvariable로 String data에 담아서 처리할 수 있음
+  - @RequestParam@PathVariable 의 이름과 파라미터 이름이 같으면 생략할 수 있다 (String data가 아닌 String userId로 셋팅해야함)
+- 미디어 타입 조건 매핑 HTTP 요청 (Content-Type, consume)
+  - @PostMapping
+  - (value = "/mapping-consume", consumes = "application/json")
+  - json의 Post 방식만 매핑이 되도록 함
+- HTTP 요청 메시지 헤더 정보를 조회하는 방법
+  - @RequestHeader
+  - @CookieValue
+- resources 폴더의 /static 등의 html은 외부에 다 공개된다 (jar에는 war의 web-app경로가 없기에 여기에 다 넣으면 스프링부트가 알아서 내장 톰캣으로 서빙해준다)
+  - Jar 를 사용하면 webapp 경로를 사용할 수 없다. 이제부터 정적 리소스도 클래스 경로에 함께 포함해야 한다.
+- MappingClassController
+  - 가장 많이 쓰는 방식
+- **HTTP 요청 메시지**
+  - **파라미터 조회**
+    - *GET 쿼리 파라미터 & POST HTML Form 전송*
+      - 형식이 같으므로 둘의 구분 없이 조회 가능
+      - 이것을 간략히 요청 파라미터(request parameter) 조회라 함
+      - 반환 타입 없으면서 response.getWriter().write("ok");로 응답에 값을 직접 넣으면 당연히 뷰 조회하지 않는다
+      - requestParamMap처럼 해당 url의 요청 파라미터가 많으면 key로 String, value로 Object인 Map에 담아서 처리해도 됨
+    - *@ResponseBody*
+      - View 조회를 무시하고, HTTP message body에 직접 해당 내용 입력
+      - @RestController와 유사. 즉 string으로 ok를 리턴할땐 class에 @Controller 대신 @RestController로 바꾸거나 아니면 해당 메소드에 @ResponseBody를 붙여주면 *ok라는 문자 메세지를 http 응답메세지에 담아서 반환한다. 즉 뷰 리졸브를 진행하지 않음*
+    - *@ModelAttribute*
+      - 요청 파라미터를 바인딩 받을 객체를 정의하는 클래스 HelloData를 만들어 놓고 해당 어노테를 쓰면
+      - 요청 파라미터를 받아서 귀찮게 필요한 객체를 만들고 그 객체에 값을 넣어주는 행위를 안해도 된다. 자동처리함
+      - public String modelAttributeV1(@ModelAttribute HelloData helloData) {
+      - helloData.getUsername(), getAge() 등으로 뽑아 쓰면 됨
+      - 위 예시처럼 파라미터가 객체인 경우 @ModelAttribute를 생략 할 수 있다.
+        - @RequestParam은 단순 타입일때 생략이 되는거고 얜 argument resolver 로 지정해둔 타입 외인 나머지일 때 생략이 되는 거임.
+  - **단순 텍스트**
+    - HTTP API에서 주로 사용 (JSON, XML, TEXT 등)
+    - 요청 파라미터와 다르게, HTTP 메시지 바디를 통해 데이터가 직접 넘어오는 경우는 *@RequestParam , @ModelAttribute 를 사용할 수 없다. @PathVariable은 사용 가능한 듯*
+    - RequestBodyStringController
+      - requestBodyString : @ResponseBody 혹은 @RestController 없어도 뷰 리졸브 진행하지 않음
+      - void 반환 타입이므로, Spring MVC가 뷰 이름을 해석해야 할지조차 알 수 없으며, 그냥 요청 처리가 끝나기 때문임. 뷰 리졸버가 동작할 여지가 없이, 직접 HTTP 응답을 메시지 바디에 담아 클라에 전송합니다.
+    -  *HttpEntity*
+      - HTTP header, body 정보를 편리하게 조회
+      - HttpMessageConverter 사용
+      - 메시지 바디 정보를 직접 조회, 응답 시도 직접 반환
+      - 요청 파라미터를 조회하는 기능과 관계 없음 (@RequestParam X, @ModelAttribute X) <- 얘네는 url 쿼리 방식으로 오는거에만 해당되는 내용임. HttpEntity는 메세지 바디 방식임
+      - 당연히 view 조회 (뷰 리졸버 등) 안 함
+    - *@RequestBody*
+      - HTTP 메시지 바디만 조회
+      - 참고로 헤더 정보가 필요하다면 HttpEntity 를 사용하거나 @RequestHeader 를 사용하면 된다. 이렇게 메시지 바디를 직접 조회하는 기능은 요청 파라미터를 조회하 @RequestParam , @ModelAttribute 와 는 전혀 관계가 없다
+      - 컨트롤러 메서드의 반환값이 응답 바디로 사용됨
+        - requestBodyStringV4의 경우 ResponseBody이기에 뷰리졸브 진행하지 않음
+      - requestBodyStringV4 : @RequestBody를 생략하면 @RequestParam으로 인식해버릴 것 (즉 메시지 바디가 아니라 요청 파라미터를 처리하려하니 문제됨)
+  - **JSON**
+    - HttpServletRequest를 사용해서 직접 HTTP 메시지 바디에서 데이터를 읽어와서, 문자로 변환한다
+    - 문자로 된 JSON 데이터를 Jackson 라이브러리인 objectMapper 를 사용해서 자바 객체로 변환한다.
+    - requestBodyJsonV1
+      - void 타입이니 당연히 뷰 리졸브 진행 x
+    - requestBodyJsonV2 :
+      - @RequestBody로 메시지 바디 읽고 데이터 꺼냄
+      - @ResponseBody이니 "ok"가 메시지 바디로 바로 응답됨 -> 뷰 리졸브 진행 x
+    - requestBodyJsonV3
+      - ModelAttribute '처럼' 한번에 객체로 변환함 (문자로 변환 후 다시 json으로 변환하는 과정 귀찮으니)
+      - @RequestBody HelloData data 이렇게 객체에 담아서 data.getUsername() 등으로 써먹으면 됨
+      - *@RequestBody는 생략 불가능* : 생략하면 HelloData 객체이기에 이전에 언급했듯 @ModelAttribute가 자동으로 붙어버림
+      - 즉 그렇게 되면 HTTP 메시지 바디가 아니라 요청 파라미터를 처리하게 되는 불상사가 일어남.
+    - requestBodyJsonV5
+      - 요청도 json 데이터 형태로 받고, 응답도 json 데이터 형태로 메세지 바디에 담음
+      - 즉 json이 객체가 됐다가, 객체가 나갈땐 json이 컨버팅 됨
+- **HTTP 응답 메시지**
+  - *정적 리소스 (src/main/resources)*
+    - 예) 웹 브라우저에 정적인 HTML, css, js를 제공할 때는, 정적 리소스를 사용한다.
+    - 정적 리소스는 해당 파일을 변경 없이 그대로 서비스하는 것이다
+    - localhost:8080/static경로로 접근 가능함
+  - *뷰 템플릿 사용 (src/main/resources/templates)*
+    - 예) 웹 브라우저에 동적인 HTML을 제공할 때는 뷰 템플릿을 사용한다.
+    - 뷰 템플릿 경로 변경 필요하면 application.properties에서 설정 가능
+    - responseViewV2
+      - @ResponseBody 가 없으면 response/hello 로 뷰 리졸버가 실행되어서 뷰를 찾고, 렌더링 한다
+      - @ResponseBody 가 있으면 뷰 리졸버를 실행하지 않고, HTTP 메시지 바디에 직접 response/hello 라는 문자가 입력된다
+      - 여기서는 없으니까 뷰의 논리 이름인 response/hello 를 반환하면 해당 경로의 뷰 템플릿이 렌더링 되는 것을 확인할 수 있다
+    - responseViewV3
+      - 반환형이 void이고 이 컨트롤러의 경로이름이 responseViewV2가 반환하는 뷰 이름과 동일하면 스프링에서 관례적으로 연결시켜주는데 권장하는 방법은 아니다. 잘 써먹을 수도 없다.
+  - *HTTP 메시지 사용*
+    - HTTP API를 제공하는 경우에는 HTML이 아니라 데이터를 전달해야 하므로, HTTP 메시지 바디에 JSON 같은 형식으로 데이터를 실어 보낸다.
+    - @ResponseBody , HttpEntity를 사용하면, 뷰 템플릿을 사용하는 것이 아니라, HTTP 메시지 바디에 직접 응답 데이터를 출력할 수 있다
+    - ResponseBodyController class
+      - ResponseEntity는 HttpEntity를 상속 받은거고 메시지 헤더, 바디에 더해서 HTTP 응답 코드를 설정할 수 있음
+- 요청과 응답 정리
+  - http 요청 메시지로 부터 데이터를 추출한 뒤에 굳이 return을 해줘야할 의무는 없음 그냥 서버 입장에선 데이터만 뽑아서 내부적인 로직을 수행하고 나중에 클라가 조회같은걸 원할떄 응답만 잘해줘도 됨. 그러나 회원 가입 후 생성된 사용자 정보 반환해야할 필요가 있을땐 request에 대해 return으로 뭔가를 반환(응답)을 해줘야함
+- *HttpMessageConverter (Http 메시지 컨버터)*
+  - 뷰 템플릿으로 HTML을 생성해서 응답하는 것이 아니라, HTTP API처럼 JSON 데이터를 HTTP 메시지 바디에서 직접 읽거나 쓰는 경우 HTTP 메시지 컨버터를 사용하면 편리하다
+  - @ResponseBody는 여러번 설명했듯 viewResolver가 수행되는게 아니라 http의 body에 문자 내용을 직접 반환한다.
+  - *이걸 가능케 해주는게 HttpMessageConverter가 동작하기 때문*임
+  - 기본 문자처리: StringHttpMessageConverter
+  - 기본 객체처리: MappingJackson2HttpMessageConverter
+  - byte 처리 등등 기타 여러 HttpMessageConverter가 기본으로 등록되어 있음
+  - 스프링 MVC는 다음의 경우에 HTTP 메시지 컨버터를 적용한다.
+    - HTTP 요청: @RequestBody , HttpEntity(RequestEntity)
+    - HTTP 응답: @ResponseBody , HttpEntity(ResponseEntity)
+    - HTTP 메시지 컨버터는 HTTP 요청, HTTP 응답 둘 다 사용된다.
+    - canRead() , canWrite() : 메시지 컨버터가 해당 클래스, 미디어타입을 지원하는지 체크
+    - read() , write() : 메시지 컨버터를 통해서 메시지를 읽고 쓰는 기능
+- *스프링 부트 기본 Message Converter
+  - 0 = ByteArrayHttpMessageConverter
+  - 1 = StringHttpMessageConverter
+    - 클래스 타입: String , 미디어타입: * / *
+    - 요청 예) @RequestBody String data
+    - 응답 예) @ResponseBody return "ok"
+      - 쓰기 미디어타입 text/plain
+  - 2 = MappingJackson2HttpMessageConverter
+    - 클래스 타입: 객체 또는 HashMap , 미디어타입 application/json 관련
+    - 요청 예) @RequestBody HelloData data
+    - 응답 예) @ResponseBody return helloData
+      - 쓰기 미디어타입 application/json 관련
+  - HTTP 요청 데이터 읽기
+    - HTTP 요청이 오고, 컨트롤러에서 *@RequestBody , HttpEntity* 파라미터를 사용한다
+    - 메시지 컨버터가 canRead()로 "클래스 타입"과 (HTTP 요청의 Content-Type) "미디어 타입"을 둘 다 체크한다
+    - canRead() 조건을 만족하면 read() 를 호출해서 객체 생성하고, 반환한다
+  - HTTP 응답 데이터 생성
+    - 컨트롤러에서 *@ResponseBody , HttpEntity* 로 값이 반환된다.
+    - 메시지 컨버터가 메시지를 쓸 수 있는지 확인하기 위해 canWrite() 를 호출해서 "클래스 타입"과 Accept "미디어 타입"을 지원한지는 체크
+    - canWrite() 조건을 만족하면 write() 를 호출해서 HTTP 응답 메시지 바디에 데이터를 생성한다
+- *RequestMappingHandlerAdapter*
+  - @RequestMapping 을 처리하는 핸들러 어댑터이다.
+  - ArgumentResolver를 호출해서 컨트롤러(핸들러)가 필요로 하는 다양한 파라미터의 값(객체)을 생성한다. 그리고 이렇게 파리미터의 값이 모두 준비되면 컨트롤러를 호출하면서 값을 넘겨준
+  - 동작방식
+    - ArgumentResolver를 호출해서 컨트롤러의 파라미터, 에노테 정보를 기반으로 전달 데이터 생성
+      - HttpServletRequest , Model, @RequestParam, @ModelAttribute, @RequestBody , HttpEntity
+    - 핸들러를 호출하면서 값을 넘겨 줌
+    - ReturnValueHandler로 컨트롤러의 반환 값을 반환
+      - ModelAndView, @ResponseBody, HttpEntity
+- *ArgumentResolver*
+  - 파라미터를 유연하게 처리하도록 해줌
+  - 스프링은 30개가 넘는 ArgumentResolver 를 기본으로 제공
+  - 동작방식
+    - supportsParameter() 를 호출해서 해당 파라미터를 지원하는지 체크하고, 지원하면 resolveArgument() 를 호출해서 실제 객체를 생성한다. 그리고 이렇게 생성된 객체가 컨트롤러 호출시 넘어가는 것
+- *ReturnValueHandler*
+  - 응답 값을 변환하고 처리
+  - 컨트롤러에서 String으로 뷰 이름을 반환해도, 동작하는 이유가 바로 ReturnValueHandler 덕분
+  - 스프링은 10여개가 넘는 ReturnValueHandler 를 지원
+- HTTP 메시지 컨버터는 어디쯤 있을까
+  - HTTP 메시지 컨버터를 사용하는 @RequestBody도 컨트롤러가 필요로 하는 파라미터의 값에 사용된다. @ResponseBody 의 경우도 컨트롤러의 반환 값을 이용한다
+  - 요청의 경우 @RequestBody 를 처리하는 ArgumentResolver가 있고, HttpEntity 를 처리하는 ArgumentResolver가 있다. 이 ArgumentResolver 들이 HTTP 메시지 컨버터를 사용해서 필요한 객체를 생성하는 것
+  - 응답의 경우 @ResponseBody 와 HttpEntity 를 처리하는 ReturnValueHandler 가 있다. 그리고 여기에서 HTTP 메시지 컨버터를 호출해서 응답 결과를 만든다
+  - *즉 단순한건 ArgumentResolver/ReturnValueHandler 선에서 처리하는데 @RequestBody나 HttpEntity처럼 HTTP 메세지 바디를 처리해야할때는 Http 메세지 컨버터를 호출해야함*
+
+
+----
+----
+
 이제 JSP를 쓰지않고 Thymeleaf를 이용한 Spring MVC를 구축함
 - Jar를 사용하면 항상 내장 서버(톰캣등)를 사용하고, webapp 경로도 사용하지 않습니다. 내장 서버 사용에 최적화 되어 있는 기능입니다. 최근에는 주로 이 방식을 사용합니다. War를 사용하면 내장 서버도 사용가능 하지만, 주로 외부 서버에 배포하는 목적으로 사용합니다.
 - 스프링 부트에 Jar 를 사용하면 /resources/static/ 위치에 index.html 파일을 두면 Welcome 페이지로 처리해준다. (스프링 부트가 지원하는 정적 컨텐츠 위치에 /index.html 이 있으면 된다.
