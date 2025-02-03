@@ -34,7 +34,7 @@ public class ResponseHeaderServlet extends HttpServlet {
 
         //[message body]
         PrintWriter writer = response.getWriter();
-        writer.println("ok");
+        writer.println("okpp");
     }
 
     private void content(HttpServletResponse response) {

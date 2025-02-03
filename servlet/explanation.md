@@ -1,3 +1,296 @@
+==spring04 - servlet ==
+- 일반적인 웹 시스템 구성
+  - 정적 리소스(HTML, CSS , JS, image)는 웹 서버가 처리
+  - 웹 서버가 애플리케이션 로직 같은 동적 처리가 필요하면  WAS에 요청
+  - WAS는 비용이 크기에 중요한 애플리케이션 로직 처리만 전담함
+  - WAS가 DB에 접근함
+  - 스프링부트는 웹 애플리케이션 서버(WAS)인 톰캣을 내장하고 있어서 편리함
+- *@ServletComponentScan*
+  - 스프링 부트는 서블릿을 직접 등록해서 사용할 수 있도록 @ServletComponentScan 을 지원한다.
+  - ServletApplication 클래스에 해당 어노테와 @SpringBootApplication을 붙여주면 된다.
+- @WebServlet
+  - 서블릿 애노테이션
+  - name: 서블릿 이름, urlPatterns: URL 매핑을 파라미터로 가짐
+  - @WebServlet(name = "helloServlet", urlPatterns = "/hello")
+- 서블릿 컨테이너 동작 방식 (HelloServlet Class)
+  - 스프링부트가 내장 톰켓 서버를 생성해주고 톰켓은 내부의 서블릿 컨테이너 기능을 가지고 있음 즉 서블릿 컨테이너 안에 helloServlet (@WebServlet 달려있는)을 생성해준다.
+  - 그 후 웹에서 localhost 등의 url로 들어오면 http 요청 메세지를 기반으로  HttpServletRequest request, HttpServletResponse response 객체를 만들어서 싱글톤의 helloServlet의 service 메서드를 호출하면서 request, response 파라미터를 넘겨줌
+  - 그 후 필요한 작업을 하고 종료를 하면 response 객체 정보로 http 응답을 생성해서 웹 브라우저에 뿌려줌
+  - 이때 service 메서드는 오버라이드 된 것이며 상속받은 HttpServlet클래스에 존재하는 메서드이다.
+- *HttpServletRequest*
+  - 서블릿은 개발자가 HTTP 요청 메시지를 편리하게 사용할 수 있도록 개발자 대신에 *HTTP 요청 메시지를 파싱*한다. 그리고 그 결과를 HttpServletRequest 객체에 담아서 제공한다
+  - Http 요청 메시지의 start line, 헤더, 바디, 쿠키 등을 뽑아낼 수 있다
+  - 저장: request.setAttribute(name, value)
+  - 조회: request.getAttribute(name)
+- **HTTP 요청 데이터의 3가지 방법**
+  - HTTP 요청 메시지를 통해 클라->서버로 데이터를 전달하는 방법
+  - 데이터를 조회할 때는 GET, 데이터를 생성/변경할 때는 POST를 사용하는 것이 일반적!
+  - *GET - 쿼리 파라미터* (RequestParamServlet Class)
+    - http://localhost:8080/request-param?username=hello&age=20 이런 형태로 접속
+    - 메시지 바디 없이, URL의 쿼리 파라미터에 데이터를 포함해서 전달. (그냥 구글 검색 시 url 긴 거)
+    - 예) 검색, 필터, 페이징등에서 많이 사용하는 방식
+    - URL에 데이터가 노출되어 보안 취약, 캐싱 가능
+    - getParameter, getParameterNames, getParameterValues, getParameterMap 등 사용 가능
+    - response.getWriter().write("ok");
+  - *POST - HTML Form*
+    - content-type: application/x-www-form-urlencoded
+    - 메시지 바디에 쿼리 파리미터 형식으로 전달 username=hello&age=20
+    - 예) 회원 가입, 상품 주문, HTML Form 사용
+    - 메시지 바디에 데이터가 숨겨지기에 보안성 높음, 캐싱 불가
+    - html을 만들어서 http://localhost:8080/basic/hello-form.html 이런 형태로 접속. (정적 html을 띄우는 거임)
+    - 해당 html에 form action="/request-param" method="post"으로 인해 이전의 request-param을 url로 갖는 그 클래스가 실행됨
+    - 그리고 콘솔에 출력도 마찬가지로 되는데 그 이유는 GET의 쿼리방식이든 html의 폼형식이든 서버는 동일하게 이걸 처리함
+    - 즉 *request.getParameter()* 는 GET URL 쿼리 파라미터 형식(?username=hello&age=20)도 지원하고, POST HTML Form 형식(application/x-www-form-urlencoded의 username=hello&age=20)도 둘 다 지원한다.
+  - *HTTP message body*에 데이터를 직접 담아서 요청
+    - 포스트맨으로 실험 가능
+    - HTTP API에서 주로 사용, JSON, XML, TEXT
+    - 단순 텍스트는 getInputStream();으로 읽음 (RequestBodyStringServlet class).
+    - Json 형태의 경우 *ObjectMapper*로 읽으면 된다. 이걸로 HelloData 형태로 객체로 변환해서 값을 읽어줌
+- *HttpServletResponse*
+  - HTTP 응답 메세지 생성
+    - HTTP 응답코드 지정
+    - 헤더 생성
+    - 바디 생성
+- **HTTP 응답 데이터 3가지 방법**
+  - *단순 텍스트 응답*
+    - 앞에서 살펴봄 ( writer.println("ok"); )
+  - *HTML 응답*
+    - PrintWriter writer = response.getWriter();
+    - 로 HTML 폼을 노가다로 writer.println()으로 보냄
+  - *HTTP API*
+    - HelloData 객체를 Jackson 라이브러리가 제공하는 objectMapper.writeValueAsString() 를 사용하면 JSON 문자로 변경할 수 있다.
+    - 그걸 스트링에 담아서 response.getWriter().write(strResult); 로 반환
+----
+- **Servlet으로 회원 관리 APP 만들기**
+- MemberFormServlet
+  - 이전의 HTML 응답 방식에서 쓴 노가다로 HTML 폼을 출력해서 리스폰스에 담아 회원 등록 폼을 제공한다.
+- MemberSaveServlet
+  - MemberRepository에 request.getParameter("username")등으로 데이터 뽑아서 내부적으로 저장한다.
+  - 그 후 response로 마찬가지로 노가다로 폼 제공한다
+- MemberListServlet
+  - w.write("< td >" + member.getId() + "< td >"); 등의 형태로 노가다 및 for문으로 서 회원 수 만큼 동적으로 생성하고 response한다.
+- 정리
+  - 기존 hello-form.html은 정적파일이기에 동적으로 코드를 넣을 수 없으나
+  - 서블릿 덕분에 *동적으로 원하는 HTML을 마음껏 만들 수 있다*. 정적인 HTML 문서라면 화면이 계속 달라지는 회원의 저장 결과라던가, 회원 목록 같은 동적인 HTML을 만드는 일은 불가능 할 것이다.
+  - 뷰(View)화면을 위한 HTML을 만드는 작업이 자바 코드에 섞여서 지저분하고 복잡
+----
+- **JSP로 회원 관리 APP 만들기**
+- new-form.jsp (jsp 패키지 내부 위치)
+  - 회원 등록 폼 JSP를 보면 첫 줄을 제외하고는 완전히 HTML와 똑같다. JSP는 서버 내부에서 서블릿으로 변환되는데, 우리가 만들었던 MemberFormServlet과 거의 비슷한 모습으로 변환됨
+- save.jsp
+  - JSP는 자바 코드를 그대로 다 사용할 수 있다. (<% ~~ %>에 자바 코드 입력 가능함)
+  - MemberRepository 객체 생성해서 메모리에 request로 읽은 데이터 저장할 수 있다.
+- members.jsp
+  - 회원 리포지토리를 먼저 조회하고, 결과 List를 사용해서 중간에 HTML 태그를 반복해서 출력하고 있다.
+- 정리
+  - JAVA 코드, 데이터를 조회하는 리포지토리 등등 다양한 코드가 모두 JSP에 노출.
+  - JSP가 너무 많은 역할을 하므로 프로젝트 커질수록 유지보수 불리
+- 비즈니스 로직은 서블릿 처럼 다른곳에서 처리하고, JSP는 목적에 맞게 HTML로 화면(View)을 그리는 일에 집중하도록 하자. 과거 개발자들도 모두 비슷한 고민이 있었고, 그래서 MVC 패턴이 등장했다.
+----
+**MVC 패턴으로 회원 관리 APP 만들기**
+- *Model View Controller*
+  - Servlet을 controller로 사용한다
+    - *Controller* : HTTP 요청을 받아서 파라미터를 검증하고, 비즈니스 로직을 실행한다. 그리고 뷰에 전달할 결과 데이터를 조회해서 모델에 담는다.
+    - 컨트롤러에 비즈니스 로직을 둘 수도 있지만, 이렇게 되면 컨트롤러가 너무 많은 역할을 담당한다. 그래서 일반적 으로 비즈니스 로직은 *서비스(Service)* 라는 계층을 별도로 만들어서 처리한다. 그리고 *컨트롤러는 비즈니스 로직이 있는 서비스를 호출하는 역할*을 담당한다.
+  - JSP를 view로 사용한다
+    - *View* : 모델에 담겨있는 데이터를 사용해서 화면을 그리는 일에 집중한다. 여기서는 HTML을 생성하는 부분을 말한다.
+  - HttpServletRequest 객체를 Model로 사용한다.
+    - *Model* : 뷰에 출력할 데이터를 담아둔다. 뷰가 필요한 데이터를 모두 모델에 담아서 전달해주는 덕분에 뷰는 비즈니스 로직이나 데이터 접근을 몰라도 되고, 화면을 렌더링 하는 일에 집중할 수 있다.
+    - request는 내부에 데이터 저장소를 가지고 있는데
+    - request.setAttribute()/getAttribute()로 데이터를 보관/조회한다.
+- servletmvc 디렉의 MvcMemberListServlet 등의 *servlet*들은 *controller*이고 WEB-INF/views에 있는 member.jsp 같은 *jsp*들이 *view* 이다.
+- /WEB-INF
+  - 이 경로안에 JSP가 있으면 외부에서 직접 JSP를 호출할 수 없다. 우리가 기대하는 것은 항상 컨트롤러를 통해서 JSP를 호출하는 것이다.
+  - WAS 룰임. 즉 클라가 localhost:8080/WEB-INF/views/new-form.jsp 해도 에러페이지뜬다.
+  - 항상 컨트롤러(서블릿)를 거쳐서 내부에서 forward 등을 해야 호출됨
+    - "save"라는 상대 경로를 썼는데 현경로에서 /save 추가 해주는 효과를 준다
+- MvcMemberFormServlet
+  - *dispatcher.forward()*
+    - 다른 서블릿이나 JSP로 이동할 수 있는 기능이다. 서버 내부에서 다시 호출이 발생한다
+    - RequestDispatcher 객체를 사용하면 요청을 다른 리소스로 넘길 수 있음.
+    - foward vs redirect
+      - foward는 클라가 서버 호출, 서버가 컨트롤러 호출, 컨트롤러가 뷰 호출, 뷰가 http 응답 코드 만들어서 클라에 보냄. 즉 클라는 응답을 한번만 받음
+      - redirect는 실제로 응답을 두 번 받음.
+      - 즉 forward는 경로 변경이 서버 내부에서 일어나는 호출이기에 클라가 인지하지 못한다는 차이가 있음
+  - request.getRequestDispatcher(뷰 경로) : 컨트롤러 -> 뷰로 요청을 전달하는 역할을 함. 즉 클라의 요청을 서버 내부에서 다른 리소스(JSP, 서블릿)으로 넘겨준다. 즉 request.getRequest~로 경로를 담았고 foward()호출하는 시점에 저 경로로 서버 내부적으로 이동이 일어남 (제어권을 넘겨줌)
+- new_form.jsp (WEB-INF/views 내부)
+  - 상대경로( / 로 시작X)인 것을 확인할 수 있다. 이렇게 상대경로를 사용하면 폼 전송시 현재 URL이 속한 계층 경로 + save가 호출된다.
+- MvcMemberSaveServlet
+  - request.setAttribute("member", member);
+  - Model에 데이터를 보관한다.
+- save-result.jsp
+  - MVC 덕분에 컨트롤러 로직과 뷰 로직을 확실하게 분리한 것을 확인할 수 있다. 향후 화면에 수정이 발생하면 뷰 로직만 변경하면 된다.
+- *흐름 정리*
+  - index.html에서 회원가입 링크 누르면 /jsp/members/new-form.jsp에 의해  컨트롤러인 MvcMemberFormServlet로 감 (이 컨트롤러는 딱히 별 기능은 없긴하지만 무조건 컨트롤러를 거쳐 뷰로 가는게 기본이라 필요함)
+  - 얘가 /WEB-INF/views/new-form.jsp라는 뷰 경로를 포워딩함
+  - new-form.jsp는 action="save"라는 상대경로를 통해 /servlet-mvc/members/save라는 경로를 만듦 (이 경로는 MvcMemberSaveServlet라는 컨트롤러임)
+  - MvcMemberSaveServlet에서 멤버의 이름과 나이를 setAttribute라는 Model에 저장한 뒤 /WEB-INF/views/save-result.jsp 경로를 포워딩한다
+  - save-result.jsp는 뷰로서 클라가 신상정보를 잘 저장한 모습을 깔끔하게 출력해준다. 이때 앞서 설명했듯 redirect가 아니라 forward이기에 경로는 여전히 localhost:8080/servlet-mvc/members/save 인걸 확인할 수 있다.
+  - 이제 회원목록을 클릭하면 index.html에서는 "/servlet-mvc/members"이쪽 링크를 연결해준다.
+  - 거기는 MvcMemberListServlet라는 컨트롤러이고. 여기서 유저 리스트를 내부적으로 List에 담아서 setAttribute에 담고 /WEB-INF/views/members.jsp라는 뷰경로에 포워딩한다.
+  - 포워딩된 members.jsp는 깔끔한 jsp 코드로 저장된 회원 목록을 출력한다. 앞서 설명했듯 redirect이 아니라 forward이기에 경로는 여전히 servlet-mvc/members 이다.
+- 이런 MVC 패턴의 한계는 viewPath, forward가 중복되고 response 등 사용하지 않는 코드들이 있다는 점이다. 즉 공통처리가 어렵다. 그리고 만약 jsp가 아닌 thymeleaf 같은 다른 뷰로 변경한다면 전체 코드를 다 변경해야 한다
+- 이걸 해결하기 위해 소위 수문장 역할을 하는 기능이 필요하다. 프론트 컨트롤러(Front Controller) 패턴을 도입하면 이런 문제를 깔끔하게 해결할 수 있다.
+----
+- *Front Controller (프론트 컨트롤러)*
+  - 실제로 스프링 웹 MVC의 DispatcherServlet이 FrontController 패턴으로 구현되어 있음
+- *V1*
+  - FrontControllerServletV1에만 @WebServlet 어노테이션 받고 이 서블릿에서 urlPatterns = "/front-controller/v1/* "로 하위 모든 요청을 받아들인다.
+  - 여기서 view 경로에 맞춰 각 컨트롤러들을 new 해주고 그걸 해쉬맵에 담아서 일치하는 컨트롤러를 찾아서 그 컨트롤러의 process 메서드를 실행시킴
+  - 그래서 MemberFormControllerV1같은 기능동작의 컨트롤러들은 톰켓 등의 서블릿 컨테이너가 직접 관리하지 않는다 (어노테이션 안 붙었으니). 지금 이 방식은 프론트컨트롤러에서 수동으로 객체를 생성하여 Map에 저장하고 있는 것일 뿐임 (스프링의 @Component 같은 빈 등록 방식 x)
+  - Form/List/Save에서 ControllerV1 인터페이스의 process 메서드를 구현하게 설계
+  - 여전히 컨트롤러에서 jsp를 forward하는 방식임
+- *V2*
+  - 각 컨트롤러는 프론트컨트롤러에게  MyView를 반환하고 프론트 컨트롤러가 그걸 받아서 렌더링함
+  - 이 렌더링 호출로 실직적으로 jsp에 forward하는 방식이 됨
+  - 즉 프론트 컨트롤러의 도입으로 MyView 객체의 render() 를 호출하는 부분을 모두 일관되게 처리할 수 있다. 각각의 컨트롤러는 MyView 객체를 생성만 해서 반환하면 된다.
+- *V3*
+  - 서블릿 종속성을 제거한다
+    - 컨트롤러 입장에서 HttpServletRequest, HttpServletResponse이 꼭 필요할까?
+    - 지금까지 컨트롤러에서 서블릿에 종속적인 HttpServletRequest를 사용했다.
+    - 요청 파라미터 정보는 자바의 Map으로 대신 넘기도록 하면 지금 구조에서는 컨트롤러가 서블릿 기술을 몰라도 동작할 수 있다.
+    - 그리고 request 객체로 setAttribute()를 Model로 사용해 데이터를 저장하고 뷰로 전다랬었다.
+    - 이제 별도의 Model 객체를 만들어서 반환하자.
+    - 우리가 구현하는 컨트롤러가 서블릿 기술을 전혀 사용하지 않도록 변경해보자. 이렇게 하면 구현 코드도 매우 단순해지고, 테스트 코드 작성이 쉽다.
+  - 뷰 이름 중복을 제거한다
+    - 컨트롤러는 뷰의 논리 이름만 반환하고 실제 물리적 위치의 이름은 프론트 컨트롤러가 처리하도록 단순화 한다.
+    - 그 처리를 viewResolver가 하도록 한다.
+  - ModelView
+    - 뷰의 논리적 이름, 뷰를 렌더링할 때 필요한 model 객체를 map으로 담고 있다. 프컨이 담아준다.
+  - 각 컨트롤러들
+    - return new ModelView("new-form");
+    - 이런식으로 논리적 이름을 ModelView에 담아서 리턴하면
+    - ModelView 생성자에서 뷰 경로를 저장한다.
+    - MemberSaveControllerV3
+      - "save-result" 이게 key이고
+      - put("member", member);이게 value이다
+  - FrontControllerServletV3
+    - 뷰 경로를 받아서 viewResolver를 호출해서 물리적 경로를 만든다.
+      - 이때 viewResolver는 return new MyView("/WEB-INF/views/" + viewName + ".jsp");
+    - 그 경로를 담은 MyView 객체를 만든 후 response, request를 담아 render()한다. 이때 JSP는 request.getAttribute()로 데이터를 조회하기 때문에, 모델의 데이터를 꺼내서 request.setAttribute()로 담아둔다. JSP로 포워드 해서 JSP를 렌더링 한다.
+    - 이때 createParamMap으로 HttpServletRequest에서 파라미터 정보를 꺼내서 Map으로 변환한다.
+  - MyView
+    - render()가 호출되면 뷰패스를 추출해서 디스패처에 담고 forwarding 한다.
+- *V4*
+  - 기본적인 구조는 V3와 같다. 대신에 컨트롤러가 ModelView 를 반환하지 않고, ViewName 만 반환한다
+- *V5*
+  - 핸들러 어댑터
+    - 중간에 어댑터 역할을 하는 어댑터가 추가되었는데 이름이 핸들러 어댑터이다.
+    - 여기서 어댑터 역할을 해주는 덕분에 다양한 종류의 컨트롤러를 호출할 수 있다.
+  - 핸들러
+    - 컨트롤러의 이름을 더 넓은 범위인 핸들러로 변경했다.
+    - 그 이유는 이제 어댑터가 있기 때문에 꼭 컨트롤러 의 개념 뿐만 아니라 어떠한 것이든 해당하는 종류의 어댑터만 있으면 다 처리할 수 있기 때문이다.
+----
+- *DispatcherServlet*
+  - 스프링 MVC의 프론트 컨트롤러가 바로 디스패처 서블릿이다.
+  - HttpServlet 을 상속 받아서 사용하고, 서블릿으로 동작한다
+  - 스프링 부트는 DispatcherServlet 을 서블릿으로 자동으로 등록하면서 모든 경로( urlPatterns="/" )에 대해서 매핑한다
+    - 참고: 더 자세한 경로가 우선순위가 높다. 그래서 기존에 등록한 서블릿도 함께 동작한다.
+  - 요청 흐름
+    - 서블릿이 호출되면 HttpServlet 이 제공하는 service() 가 호출된다.
+    - 스프링 MVC는 DispatcherServlet 의 부모인 FrameworkServlet 에서 service() 를 오버라이드 해두었다.
+    - FrameworkServlet.service() 를 시작으로 여러 메서드가 호출되면서 DispatcherServlet.doDispatch() 가 호출된다
+- *doDispatch*
+  - **흐름**
+    - 파라미터 request로 부터 핸들러를 조회.
+    - 핸들러(이전의 컨트롤러)를 처리할 수 있는 핸들러 어댑터를 조회
+    - 그 어댑터를 실행
+    - 어댑터를 통해 핸들러를 실행
+    - ModelAndView로 반환해준다
+    - 이후 "processDispatchResult()" 메서드에서 render()로 뷰 렌더링을 호출하면
+    - "render()" 메서드에서 resolveViewName으로 뷰 리졸버를 통해 뷰를 찾고 물리 이름으로 바꾼 후 View를 반환한다
+    - 그걸 view.render()로 뷰 렌더링한다.
+  - 이전의 v5 역할과 동일하며 DispatcherServlet.java에 위치함
+- 참고로 *return new ModelAndView("new-form");* 이런식으로 뷰 경로를 ModelAndView에 넣고 반환하는게 이전의 Forwarding과 동일한 효과인거임
+  - 사실 JSP 한정으로 서블릿이 직접 JSP로 포워딩하는 행위와 유사한거고, 스프링 전체적인 개념에서 정확히는 뷰 리졸버가 개입하여 적절한 뷰를 찾아서 렌더링하는 방식입니다.
+  - 스프링 부트는 *InternalResourceViewResolver*라는 뷰 리졸버를 자동으로 등록하는데, 이때 application.properties 에 등록한 spring.mvc.view.prefix , spring.mvc.view.suffix 설정 정보를 사용해서 등록한다. InternalResourceView가 forward() 를 사용해서 JSP를 실행함
+  - 참고로 다른 뷰는 실제 뷰를 렌더링하지만, JSP의 경우 forward() 통해서 해당 JSP로 이동(실행)해야 렌더링이 된다. *JSP를 제외한 나머지 뷰 템플릿들은 forward() 과정 없이 바로 렌더링 된다.*
+
+- **핸들러 맵핑, 핸들러 어댑터 조회, 뷰 리졸버 등록 순위**
+- *HandlerMapping*
+  - 0 = RequestMappingHandlerMapping
+    - 애노테이션 기반의 컨트롤러인 @RequestMapping에서 사용
+  - 1 = BeanNameUrlHandlerMapping
+    - 스프링 빈의 이름으로 핸들러를 찾는다.
+- *HandlerAdapter*
+  - 0 = RequestMappingHandlerAdapter
+    - 애노테이션 기반의 컨트롤러인 @RequestMapping에서 사용
+  - 1 = HttpRequestHandlerAdapter
+    - HttpRequestHandler 처리
+  - 2 = SimpleControllerHandlerAdapter
+    - Controller 인터페이스(애노테이션X, 과거에 사용) 처리
+- *ViewResolver*
+  - 1 = BeanNameViewResolver
+    - 빈 이름으로 뷰를 찾아서 반환한다. (엑셀 파일 생성 기능에 사용)
+  - 2 = InternalResourceViewResolver
+    - JSP를 처리할 수 있는 뷰를 반환한다.
+- 호출 순서 설명
+  - "OldController" 케이스
+    - 핸들러 맵핑에서 빈 이름으로 핸들러 찾으니 1번이 수행되고 그 후 핸들러 어댑터에서 2번을 지원하므로 대상이 된다. 디스패처 서블릿이 조회한 SimpleControllerHandlerAdapter를 실행하면서 핸들러 정보도 함께 넘겨준다. 해당 어댑터는 핸들러인 OldController 를 내부에서 실행하고, 그 결과를 반환한다
+  - 핸들러 어댑터를 통해 new-form 이라는 논리 뷰 이름을 획득한다. BeanNameViewResolver 는 new-form 이라는 이름의 스프링 빈으로 등록된 뷰를 찾아야 하는데 없다. InternalResourceViewResolver가 호출됨
+    - HandlerMapping = BeanNameUrlHandlerMapping
+    - HandlerAdapter = SimpleControllerHandlerAdapter
+    - ViewResolver = InternalResourceViewResolver
+
+----
+**스프링MVC-시작하기**
+- *@Controller*
+  - 스프링 MVC에서 애노테이션 기반 컨트롤러로 인식한다
+  - 스프링이 자동으로 스프링 빈으로 등록한다. (내부에 @Component 애노테이션이 있어서 컴포넌트 스캔의 대상이 됨)
+- *RequestMapping*
+  - 가장 우선순위가 높은 핸들러 매핑과 핸들러 어댑터이다
+    - RequestMappingHandlerMapping
+    - RequestMappingHandlerAdapter
+  - 메서드에 붙여준다. 요청 정보를 매핑하는 역할을 한다. 해당 URL이 호출되면 이 메서드가 호출된다. 애노테이션을 기반으로 동작하기 때문에, 메서드의 이름은 임의로 지으면 된다
+  - 지금 스프링에서 주로 사용하는 애노테이션 기반의 컨트롤러를 지원하는 매핑과 어댑터이다. 실무에서는 99.9% 이 방식의 컨트롤러를 사용
+  - 스프링은 애노테이션을 활용한 매우 유연하고, 실용적인 컨트롤러를 만들든 결과다
+- *V1*
+  - SpringMemberFormControllerV1
+    - process()메서드에 RequestMapping 어노테 붙여준다
+    - return new ModelAndView("new-form"); 반환한다.
+  - SpringMemberSaveControllerV1
+    - 역시나 RequestMapping어노테 붙이고 ModelAndView 객체를 반환한다.
+    - mv.*addObject*("member", member)
+      - 스프링이 제공하는 ModelAndView 를 통해 Model 데이터를 추가할 때는 addObject() 를 사용하면 된다. 이 데이터는 이후 뷰를 렌더링 할 때 사용된다
+      - 즉 attributeName인 "member"라는 이름으로 데이터가 뷰에 전달되기에 뷰(jsp, thymeleaf 등)에서 이 데이터를 해당 이름을 사용해 접근 가능하다.
+      - JSP에서 < li>username=${member.username}</li >
+        - ${member} 등을 사용하여 데이터를 참조 가능
+      - mv.getModel().put("member", member); 도 가능은 함 (이전 방식)
+- *V2*
+  - SpringMemberControllerV2
+    - @RequestMapping("/save") 등 상대경로를 이용해 form/list/save를 하나의 파일에 다 박았다.
+    - 이때 클래스레벨에 @RequestMapping("/springmvc/v2/members")을 붙여줘서 list를 조회하는 members()메서드의 경우 requestMapping의 추가적인 경로가 없기에 자동으로 우선 실행되게 됨. 즉 중복을 제거한거임
+- *V3*
+  - 예전과 유사하게 이젠 논리적 view 경로를 각 컨트롤러 역할하는 메서드들이 반화하도록 수정함 (String을 반환)
+    - addObject를 모델앤뷰에 담아 반환하는게 아니라
+    - 모델엔 데이터를 addAttribute로 담고 반환은 논리경로만 한다.
+    - v1에 addObject 사용헀는데 이거 내부 들어가보면 addAttribute 사용함. v3에선 이걸 쓴다.
+  - public String members(Model model) {
+    - 모델을 파라미터로 받는다.
+  - *@RequestParam("username")*
+    - 스프링은 HTTP 요청 파라미터를 @RequestParam 으로 받을 수 있다
+    - request.getParameter("username") 와 거의 같은 코드라 생각하면 된다.
+    - 물론 GET 쿼리 파라미터, POST Form 방식을 모두 지원한다
+  - *@GetMapping("/new-form")*
+    - @RequestMapping 은 URL만 매칭하는 것이 아니라, HTTP Method도 함께 구분할 수 있다
+    - 즉 @RequestMapping 애노테이션 + GET 방식만 지원
+  - *@PostMapping("/save")*
+    - @RequestMapping 애노테이션 + POST 방식만 접근 가능
+    - 이런 방식으로 같은 경로라도 GET or POST 인가에 따라 구분 가능
+  - 정리
+    - @Controller가 붙으면 DispatcherServlet이 등록됨
+    - newForm(), save(), members()는 개별적인 개별적인 요청 처리 핸들러 메서드(컨트롤러)임.
+    - DispatcherServlet은 쟤네 3명이 호출될 때 Http 요청을 먼저 가로채고 처리과정을 조율함.
+    - DispatcherServlet이 @RequestMapping의 RequestMappingHandlerMapping과 RequestMappingHandlerAdapter를 통해 컨트롤러(핸들러)와 어댑터를 조회하고 이 컨트롤러들을 호출함.
+      - @GetMapping("/new-form") @PostMapping("/save") @GetMapping이 핸들러를 맵핑하는 과정이고
+      - save() 메서드는 핸들러 어댑터를 통해 호출됩니다. RequestMappingHandlerAdapter가 save() 메서드를 실행하고, 실행 결과로 논리 뷰 이름("save-result")을 반환니다.
+    - 각 컨트롤러들의 반환형은 ModelAndView임. 근데 V3는 String으로 간편화 시켰음 (스프링에서 알아서 뷰로 인식).
+    - 그러면 이 논리 뷰 경로를 뷰 리졸버를 통해 전체 뷰 경로를 생성하고 최종적으로 View를 렌더링함 (클라에 응답)
+
+
+----
+----
+
 
 - 일반적인 웹 시스템 구성
   - 정적 리소스(HTML, CSS , JS, image)는 웹 서버가 처리
