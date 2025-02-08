@@ -1,0 +1,116 @@
+==Spring05 - Validation==
+- implementation 'org.springframework.boot:spring-boot-starter-validation'를 build.gradle에 추가 (javax -> jakarta 도)
+- 클라이언트 검증, 서버 검증
+    - 클라이언트 검증은 조작할 수 있으므로 보안에 취약하다.
+    - 서버만으로 검증하면, 즉각적인 고객 사용성이 부족해진다.
+    - 둘을 적절히 섞어서 사용하되, 최종적으로 서버 검증은 필수 API 방식을 사용하면 API 스펙을 잘 정의해서 검증 오류를 API 응답 결과에 잘 남겨주어야 함
+- *V1*
+    - 컨트롤러에서 검증 로직을 돌려야함. 실패하면 상품 등록 폼을 다시 보여줘야 함 (예를 들어 상품명만 잘못 입력했을 경우 가격과 수량은 유지시켜주면서 상품명만 다시 입력해달라는 메세지와 함께 상품등록폼을 다시 렌더링 해줘야한다)
+    - /add를 GetMapping으로 보낼때 model을 넘겨주기에 post에서 화면을 재렌더링하더라도 해당 model의 정보를 계속 쓸 수가 있어서 좋은 거임. /add에 대한 Get과 Post를 유지하는 또 다른 장점인거임
+    - Safe Navigation Operator
+        - errors?. 은 errors 가 null 일때 NullPointerException 이 발생하는 대신, null 을 반환하는 문법 이다. th:if 에서 null 은 실패로 처리되므로 오류 메시지가 출력되지 않는다.
+        - 즉 errors(hashmap임)가 null이면 오류가 없다는 뜻이라 false가 됨
+        - true -> class="form-control field-error" 즉 field-error 추가해줌
+        - false->class="form-control"
+        - 이때 form-control은 HTML 기본 클래스 속성임, field-error는 상단 style에 내가 정의해준 것
+- *V2*
+    - *BindingResult*
+        - @ModelAttribute로 선언된 item에 바인딩된 데이터가 bindingResult에 담긴다.
+        - BindingResult bindingResult 파라미터의 위치는 @ModelAttribute Item item 다음에 와야 한다
+        - 이 바인딩리솔트가 이전의 hashmap인 errors 역할을 해준다.
+        - 바인딩리솔트는 자동으로 뷰에 넘어감으로 모델어트리뷰트에 담을 필요 없다
+    - additemV1
+        - 필드에 오류가 있으면 FieldError 객체를 생성해서 bindingResult 에 담아두면 된다
+        - 특정 필드를 넘어서는 오류가 있으면 ObjectError 객체를 생성해서 bindingResult 에 담아두면 된다
+        - 타임리프 스프링 검증 오류 통합 기능
+            -  # fields : # fields 로 BindingResult 가 제공하는 검증 오류에 접근할 수 있다.
+            - th:errors : 해당 필드에 오류가 있는 경우에 태그를 출력한다. th:if 의 편의 버전이다.
+            - th:errorclass : th:field 에서 지정한 필드에 오류가 있으면 class 정보를 추가한다.
+    - additemV2
+        - 바인딩리졸트는 에러(오류 정보)가 뜨면 FieldError를 바인딩리졸트에 담아서 컨트롤러를 정상 호출한다.
+            - 비인딩리졸트를 안쓰면 에러가 뜨면 스프링이 컨트롤러를 호출하지 않고 바로 404 띄운다.
+            - objecterror는 필드에서 넘어오는 에러가 아님. 그래서 binding failure를 작성하지 않는다
+        - rejectValue에 item.getItemName()을 담아줘서 잘못된 입력을 넣어도 폼에 출력이 유지되도록 해준다
+    - additemV3
+        - errors.properties로 메세지화 시켰다
+    - additemV4
+        - 컨트롤러에서 BindingResult 는 검증해야 할 객체인 target 바로 다음에 온다. 따라서 BindingResult 는 이 미 본인이 검증해야 할 객체인 target 을 알고 있다.
+        - BindingResult 가 제공하는 rejectValue() , reject() 를 사용하면 FieldError , ObjectError 를 직접 생성하지 않고, 깔끔하게 검증 오류를 다룰 수 있다
+        - bindingResult.rejectValue("itemName", "required"); 간단하다
+        - price에 문자를 넣으면 typeMismatch가 발생하며 이건 내가 정의해준게 아닌 스프링이 rejectValue로 띄워주는 에러코드이다.
+            - 이것도 typeMismatch에 대해 errors.properties에 정의해주면 변경 대체가능하다.
+    - *MessageCodersResolver*
+        - errors.properties에서 디테일한 경로가 있으면 그걸 먼저 띄우고 아니라면 범용의 간소화된 경로를 출력함
+        - 이렇게하면 개발코드를 수정할 필요없이 에러메세지 구조만 건들면되니까 유지보수에 유리해진다. 의 기능이다
+    - additemV5 & ItemValidator
+        - 검증하는 역할은 Validator라는 클래스에서 처리하고 컨트롤러는 동작 로직만 하도록 만든다.
+        - 컨트롤러에서는 itemValidator.validate(item, bindingResult); 이거 한 줄로 검증이 가능하다
+    - additemV6
+        - 검증기를 직접 불러서 사용하지 않고 Validator 인터페이스를 사용해 검증기를 만들면 스프링의 추가적인 도움을 받을 수 있다.
+        - WebDataBinder 는 스프링의 파라미터 바인딩의 역할을 해주고 검증 기능도 내부에 포함한다
+        - WebDataBinder에 검증기를 추가하면 해당 컨트롤러에서는 검증기를 자동으로 적용할 수 있다. @InitBinder 해당 컨트롤러에만 영향을 준다. 글로벌 설정은 별도로 해야한다.
+        - 파라미터 item 앞에 @Validated 추가해주면 @InitBinder가 붙은 init 함수의 WebDataBinder가 호출되면서 검증해주는 듯, 그 결과를 bindingResult에 담아준다 알아서
+        - 즉 @Validated 는 검증기를 실행하라는 애노테이션이다. 이 애노테이션이 붙으면 앞서 WebDataBinder 에 등록한 검증기를 찾아서 실행한다. 그런데 여러 검증기를 등록한다 면 그 중에 어떤 검증기가 실행되어야 할지 구분이 필요하다. 이때 supports() 가 사용된다. 여기서는 supports(Item.class) 호출되고, 결과가 true 이므로 ItemValidator 의 validate() 가 호출된다.
+- *V3*
+    - *Bean Validation*
+        - javax.validation 으로 시작하면 특정 구현에 관계없이 제공되는 표준 인터페이스이고, org.hibernate.validator 로 시작하면 하이버네이트 validator 구현체를 사용할 때만 제공되는 검증 기 능이다. 실무에서 대부분 하이버네이트 validator를 사용하므로 자유롭게 사용해도 된다
+        - @NotBlank/NotNull/Range/Max 등을 item 클래스에 달아주고 이전과 마찬가지로 @Validated 쓰면 자동으로 빈 벨리데이션이 적용된다 (ItemValidator를 생성하지 않아도).
+        - 스프링부트가 LocalValidatorFactoryBean을 글로벌 Validator로 대신 등록해주기 때문이다. 얘가 위의 에노테들을 보고 검증을 수행해준다. 검증 오류가 발생하면 FieldError, ObjectError를 생성해서 BindingResult에 담아준다.
+        - *검증 순서*
+            - 순서
+                1. @ModelAttribute 각각의 필드에 타입 변환 시도
+                    1. 성공하면 다음으로
+                    2. 실패하면 typeMismatch 로 FieldError 추가
+                2. Validator 적용
+            - 바인딩에 성공한 필드만 Bean Validation 적용
+            - BeanValidator는 바인딩에 실패한 필드는 BeanValidation을 적용하지 않는다
+            - @ModelAttribute 각각의 필드 타입 변환시도 변환에 성공한 필드만 BeanValidation 적용한다. 생각해보면 타입 변환에 성공해서 바인딩에 성공한 필드여야 BeanValidation 적용이 의미 있다. (일단 모델 객체에 바인딩 받는 값이 정상으로 들어와야 검증도 의미가 있다.)
+            - 컨트롤러는 여전히 실행되는듯 (당연)
+        - 예)
+            - itemName 에 문자 "A" 입력 타입 변환 성공 itemName 필드에 BeanValidation 적용
+            - itemName에 공백 입력 -> NotBlank라는 오류 코드가 에노테이션 이름으로 등록된다.
+            - price 에 문자 "A" 입력 "A"를 숫자 타입 변환 시도 실패 typeMismatch FieldError 추가 price 필드는 BeanValidation이 적용되지 않음.
+                - 즉 DataBinder로 요청 값 바인딩 시도 했으나 int <-> String이라 TypeMismatchException이 발생 후
+                - BindingResult에 FieldError(price, TypeMismatch) 추가
+                - 컨트롤러는 호출됨 (BindingResult가 파라미터로 존재하기 때문)
+                - @Validated가 붙어 있어서 이제 Bean Validation이 실행되는데 @NotNull의 조건이 달린 price는 null이라 검사 실패함 (바인딩에 실패했기에 BeanValidation을 적용하지 않는다고 생각해도 무방한가)
+                - 그래서 BindingResult에 추가 오류 발생하게 되며 BindingResult에 에러가 있으니 return ~form 반환
+    - addItemV1
+        - Bean Validation에서 특정 필드( FieldError )가 아닌 해당 오브젝트 관련 오류( ObjectError )는 어떻게 처리할 수 있을까
+            - @ScriptAssert() 를 사용하면 되나 거의 안 쓴다.
+            - 그냥 코드 상에서 해결하는게 더 낫다.
+    - addItemV2
+        - BeanValidation의 groups 기능을 사용한다.
+        - SaveCheck, UpdateCheck 인터페이스를 만든 뒤
+        - 등록시에 검증할 기능과 수정시에 검증할 기능을 각각 그룹으로 나누어 적용할 수 있다
+        - 실무에서는 회원 등록시 회원과 관련된 데이터만 전달받는 것이 아니라, 약관 정보도 추가로 받는 등 Item 과 관계없는 수 많은 부가 데 이터가 넘어온다.
+    - *V4*
+        - 그래서 보통 Item 을 직접 전달받는 것이 아니라, 복잡한 폼의 데이터를 컨트롤러까지 전달할 별도의 객체를 만들어서 전달한다. 예를 들면 ItemSaveForm 이라는 폼을 전달받는 전용 객체를 만들어서 @ModelAttribute 로 사용한다. 이것을 통해 컨트롤러에서 폼 데이터를 전달 받고, 이후 컨트롤러에서 필요한 데이터를 사용해서 Item 을 생성한다.
+        - Item을 직접 사용하지 않고, ItemSaveForm, ItemUpdateForm 같은 폼 전송을 위한 별도의 모델 객체를 만들어서 사용한다.
+    - *Bean Validation - HTTP 메시지 컨버터*
+        - @Valid , @Validated 는 HttpMessageConverter ( @RequestBody )에도 적용할 수 있다 (JSON API 등)
+        - 가격에 qqq 넣으면 컨트롤러 호출자체가 안됨
+            - json이 어떻게든 객체로 바뀌어야 됨
+            - ItemSaveForm이란 객체로 바뀌어야 그 다음에 밸리데이션 해서 컨트롤러를 호출할 수 있는데 지금 그 단계까지도 못 감.
+            - 즉 컨트롤러 호출 자체가 아예 안되고 예외가 터짐 (예외 처리는 차후에 설명)
+        - 검증 오류 요청 *중요*
+            - Json을 객체로 생성하는 것은 성공했고 검증에서 실패함
+            - 수량이 9999보다 큰게 들어올 때의 케이스
+            - Json을 ItemSaveForm 객체로는 만들었기에 컨트롤러 진입은 가능함, 이제 @Validated를 하는데 여기서 검증오류가 발생해서 BindingResult에 오류가 들어간거임.
+            - bindingResult.hasErrors() 로 조건 검사한뒤 return bindingResult.getAllErrors() 로 모든 에러를 json에게 넘겨주면 postman에서 에러 뭉치 응답을 받게 되는 것.
+- *@ModelAttribute vs @RequestBody의 BindingResult와 컨트롤러 진입*
+    - @ModelAttribute 를 사용할 경우
+        - ModelAttributeMethodProcessor(ArgumentResolver)가 사용됩니다. 여기서 리플렉션을 통해 @ModelAttribute 객체의 생성자를 기본 생성자로 호출합니다 (모든 필드 변수의 값이 디폴트 값(int는0, String은 null 등).
+        - 이후 DataBinder 를 사용하여 요청 파라미터의 key를 가지고 리플렉션을 통해 @ModelAttribute 객체의 같은 key 에 대한 정보를 찾습니다. 그리고 찾은 필드 변수의 타입을 가지고 요청 파라미터의 값을 설정합니다.
+        - 이 때, int 필드에 문자열이 들어가면 형 변환에 실패하고, BindingResult 에 FieldError를 넣는 과정이 있습니다. 그래서 @ModelAttribute 경우 TypeMismatch 에러가 발생해도 BindingResult를 파라미터러 받는다면 컨트롤러가 호출됩니다.
+        - BindingResult가 파라미터로 있으면 컨트롤러에 진입 가능 (에러 정보 저장됨). 그 후 코드 내부에서 bindingResult.hasErrors()이면 return 해줄 수 있음 (렌더링)
+    - @RequestBody의 경우
+        - RequestResponseBodyMethodProcessor (ArgumentResolver)가 호출됩니다. 이후 AbstractJackson2HttpMessageConverter (HttpMessageConverter)에서 Jackson 라이브러리를 통해 요청 HTTP 메시지 바디의  json string를 @RequestBody 객체로 변환하는 작업을 합니다.
+        - 이 때, int 필드에 문자열이 들어갔다면, Jackson 라이브러리에서 InvalidFormatException 을 발생시키고, BindingResult가 있더라도 컨트롤러에 진입 조차 할 수 없고 400 예외 메시지가 발생하게 됩니다.
+        - 이 차이 떄문에 @ModelAttribute 는 클라이언트가 잘못된 데이터 타입의 값을 입력해도 적절한 에러 메시지를 바인딩하여 컨트롤러에 진입할 수 있지만, @RequestBody는 아예 컨트롤러 진입 전에 요청이 실패하는 차이가 있습니다.
+    - 정리
+        - @ModelAttribute 사용 시 바인딩에 실패해도 컨트롤러는 실행된다.
+        - @ModelAttribute 는 각각의 필드 단위로 세밀하게 적용된다. 그래서 특정 필드 에 타입이 맞지 않는 오류가 발생해도 나머지 필드는 정상 처리할 수 있었다
+        - @RequestBody 사용 시 바인딩에 실패하면 컨트롤러가 실행되지 않는다.
+        - HttpMessageConverter 는 @ModelAttribute 와 다르게 각각의 필드 단위로 적용되는 것이 아니라, 전체 객체 단위로 적용된다. 따라서 메시지 컨버터의 작동이 성공해서 ItemSaveForm 객체를 만들어야 @Valid , @Validated 가 적용된다.
+        - *즉*, @ModelAttribute 는 필드 단위로 정교하게 바인딩이 적용되기에 특정 필드가 바인딩 되지 않아도 나머지 필드 는 정상 바인딩 되고, Validator를 사용한 검증도 적용할 수 있다. @RequestBody 는 HttpMessageConverter 단계에서 JSON 데이터를 객체로 변경하지 못하면 이후 단계 자체가 진행되지 않고 예외가 발생하기에 컨트롤러도 호출되지 않고, 그에 의해 당연히 Validator도 적용할 수 없다.

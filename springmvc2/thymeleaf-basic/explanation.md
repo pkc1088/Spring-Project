@@ -1,0 +1,15 @@
+- **Spring05 - thymeleaf-basic**
+    - div th:with="first=${users[0]}"
+        - first라는 지역변수 객체에 users라는 리스트의 0번째 데이터를 넣은 것
+    - session : 사용자가 끄지 않는 이상 데이터가 유지되는 연결
+    - 스프링부트 3.0 이상부터
+        - ${#request} , ${#response} , ${#session} , ${#servletContext} 를 지원하 지 않는다
+        - model 에 해당 객체를 추가해서 사용
+        - locale은 기본객체로 사용 가능한 듯
+        - HelloParam은 index.html에서 딸려온거임
+    - @{/hello/{param1}/{param2}(param1=$ {param1}, param2=${param2})}
+        - /hello/data1/data2
+        - path variable 형식
+    - @{/hello/{param1}(param1=$ {param1}, param2=${param2})}
+        - /hello/data1?param2=data2
+        - 경로 변수와 쿼리 파라미터를 함께 사용

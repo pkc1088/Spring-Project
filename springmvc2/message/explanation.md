@@ -1,173 +1,19 @@
-==spring - item-service==
-- 컨트롤러를 통해 뷰가 렌더링되도록 항상 설계함
-- Item class
-    - 핵심 도메인에 @Data를 쓰는건 위험할 수 있다. @Getter, @Setter로만 하자
-- ItemRepository class
-    - @Repository를 달아줘서 component scan의 대상이 된다
-    - 편의상 HashMap 사용 (동시성 고려 x, 실무는 ConcurrentHashMap 씀, long도 atomic long 써야함)
-    - 스프링은 싱글톤이라 큰 문제 없긴한데 일단 static으로 선언함
-- 참고
-    - 부트스트랩(Bootstrap)은 웹사이트를 쉽게 만들 수 있게 도와주는 HTML, CSS, JS 프레임워크이다. 하나의 CSS로 휴대폰, 태블릿, 데스크탑까지 다양한 기기에서 작동한다. 다양한 기능을 제공하여 사용자가 쉽게 웹사이 트를 제작, 유지, 보수할 수 있도록 도와준다
-    - 정적(static) 리소스에 있는 HTML은 GET일때만 받는거다. POST로 접근하면 405 에러뜸
-- BasicItemController class
-    - *BasicItemController는 컨트롤러 역할*을 하는 클래스이고 *내부 item()메서드 들은 핸들러 역할*을 하는 거다. 프론트 컨트롤러 역할은 당연히 스프링 자체의 DispatcherServlet이 하는거임.
-    - **##########흐름##########**
-        - 클라가 /basic/items/{itemId} 로 요청
-        - DispatcherServlet(프론트컨트롤러)이 요청을 받음
-        - HandlerMapping이 적절한 컨트롤러 찾음
-            - @RequestMapping("/basic/items")에 의해 BasicItemController가 매핑됨. 이것도 RequestMappingHandlerAdapter가 진행해줌
-        - HandlerAdapter가 실행할 핸들러를 처리
-            - RequestMappingHandlerAdapter가 item() 메서드를 실행할 수 있도록 호출
-        - item() 실행해서 basic/item이란 View를 반환
-        - ViewResolver가 해당 View를 찾아서 물리 뷰로 만들고 rendering함
-    - BasicItemController 생성자 메서드 만들고 @Autowired 붙이면 해당 클래스가 스프링빈에 등록될 때 생성자 주입으로 itemRepository가 스프링빈에 같이 주입이 됨. 근데 이 클래스처럼 생성자가 딱 하나만 있으면 @Autowired 생략 가능. 더 나아가 @RequiredArgsConstructor 까지 사용하면 생성자를 제거해도 됨. (spring02)에서 다룬 내용
-    - @PostConstruct
-        - 해당 빈의 의존관계가 모두 주입되고 나면 초기화 용도로 호출된다.
-    - 정적에 위치한 items.html을 동적으로 쓰기 위해 타임리프를 사용할것이다. 그러기 위해 *templates/basic*에 items.html을 복붙한 뒤 타임리프 형태로 수정한다
-    - 타임리프 사용 선언
-        - < html xmlns:th="http://www.thymeleaf.org" >
-    - 속성 변경
-        - th:href="@{/css/bootstrap.min.css}"
-    - HTML을 그대로 볼 때는 href 속성이 사용되고, *뷰 템플릿을 거치면 th:href 의 값이 href을 대체하면서 동적으로 변경*할 수 있다. 즉 핵심은 th:xxx 가 붙은 부분은 서버사이드에서 렌더링 되고, 기존 것을 대체한다. th:xxx 이 없으면 기존 html 의 xxx 속성이 그대로 사용된다.
-        - 예시 : < td th:text="${item.price}">10000</td >
-            - 10000을 ${item.price} 의 값으로 변경한다.
-        - 단순 onclick이 제공하는 addForm.html은 정적 html인데 이걸 th:onclick과 같이해주면 뷰 리졸빙 거치 뷰 템플릿은 "|location.href='@{/basic/items/add}'|" 로 동적 html로 치환되는거임
-    - HTML을 파일로 직접 열었을 때, th:xxx 가 있어도 웹 브라우저는 th: 속성을 알지 못하므로 무시
-    - 타임리프 URL 링크 표현식
-        - @{...} 에 url을 담는다
-        - th:href="@{/basic/items/{itemId}(itemId=${item.id})}"
-            - ${item.id} 는 item이란 모델의 id 프로퍼티를 추출해서 itemId에 할당하고 그걸 /basic/items/{itemId}의 경로에 넣어준다. 즉 /basic/items/1 등의 형태로 생성해준다.
-    - JSP는 오직 서버를 통해서 열어야 한다. 그러나 타임리프처럼 순수 HTML을 그대로 유지하면서 뷰 템플릿도 사용할 수 있는 특징을 *네츄럴 템플릿*이라 함. 장점은 서버를 안 띄우고도 바로 절대경로를 로컬에서 띄우고 바로 수정을 확인할 수 있다는 점임
-    - String item()
-        - @GetMapping("/{itemId}")
-        - public String item(@PathVariable Long itemId, Model model) {}
-        - PathVariable을 사용해서 url 볼때 {itemId}이 "~/1"이런식으로 들어오면 1을 Long itemId에 어사인한다.
-        - *핵심* : return "basic/item"인데 @ResponseBody나 @RestController가 없으니 뷰 리졸브가 실행된다. 덕분에 타임리프를 사용한 templates/basic 경로의 동적 html이 수행되는 것이며 앞서 말했듯 뷰템플릿을 거쳤으니 타임리프의 th:xxx가 단순 xxx를 덮어쓰는거다.
-    - /add
-        - 폼을 열땐 get, 실제 저장할땐 post 방식으로 동작하도록 @PostMapping과 @GetMapping을 "/add"에 대해 적용한다.
-        - 버전을 여러개 만들기 위해 맨 마지막 addItem 버전에만 post 어노테이션 붙인거임
-        - 즉 상품 등록 폼(화면)을 보이는건 @GetMapping
-        - 실제 "상품 등록"버튼을 post하면(누르면) @PostMapping 된 메서드가 실행됨. 원래 그냥 html 파일은 form action="item.html" method="post"로 되어있는데 이걸 th:action="/basic/items/add" 추가해줘야함 (경로는 생략하면 그 경로에 바로 post 하기에 생략 가능).
-        - 이게 결국 Get과 Post가 같은 url인 /add로 오더라도 postmapping된 save() 호출되면서 basic/item의 경로로 이동하게 되는 거임.
-    - addItemV1
-        - JSON 형식이 아니라 요청 파라미터 형식이니까 @RequestParam을 쓸 수 있는 거임
-        - itemName 요청 파라미터 데이터를 String itemName 변수에 담고 Item 객체 생성하고 그걸 itemRepository에 저장함. 저장된 item을 모델에 담아서 뷰에 전달한다. 이때 model.addAttribute에 "item"으로 속성이름을 지정했으니 item.html에서 ${item.itemName}이런식으로 뽑아 쓸 수 있는거임
-    - addItemV2
-        - @RequestParam 으로 변수를 하나하나 받아서 Item 을 생성하는 과정은 불편하니 @ModelAttribute 를 사용해서 한번에 처리
-        - @ModelAttribute("item")로 이름을 item으로 지정함. 그러면 지정한 객체를 자동으로 넣어준다.
-    - *@PathVariable vs @RequestParam*
-        - @PathVariable
-            - URL의 일부를 변수처럼 사용하여 데이터를 전달
-            - RESTful API에서 자원을 식별할 때 자주 사용됨
-            - 어떤 상품을 수정할지 그 id가 넘어와야 되면 이걸 씀
-            - 데이터 출처 : URL 경로 변수
-            - url 예시 : /user/{id} -> /user/100
-            - @GetMapping("/user/{id}") public String getUser(@PathVariable int id)
-        - @RequestParam
-            - URL의 쿼리 스트링 파라미터를 받아올 때 사용
-            - 주로 필터링, 검색, 정렬 등의 옵션을 제공할 때 유용
-            - 데이터 출처 : 쿼리 스트링(파라미터)
-            - url 예시 : /user?id=100
-            - @GetMapping("/user")public String getUser( @RequestParam int id)
-            - 즉 id를 쿼리 스트링으로 전달
-        - 즉, RESTful API에서는 @PathVariable을 선호하지만 (JSON에서 쓸 수 있으니까), 사용자 입력을 받는 경우에는 @RequestParam을 더 많이 사용합니다
-            - @PathVariable은 URL 템플릿에서 동적으로 변하는 값들을 추출하는데 사용합니다. 주로 리소스 식별자들을 얻는데 사용하는 것 같습니다.
-            - ex) users/1 : 식별자가 1인 유저를 조회해야할 때 => @PathVariable
-            - @RequestParam은 쿼리 파라미터 혹은 쿼리 스트링이나 폼 데이터를 바인딩할 때 사용하는 것 같습니다.
-            - ex) users?name=스프링: name이 "스프링"인 user를 조회해야 할 때 => @RequestParam
-            - @ModelAttribute는 폼 데이터를 자바 객체로 바인딩할 때, 해당 객체를 모델로 하여 뷰로 전달할 때 사용하기 좋은 것 같습니다.
-            - 그래서 저는 @PathVariable은 위의 예시와 같이 URL 템플릿에서의 변화하는 값을 바인딩할 때 사용합니다. 그리고 @RequestParam은 조회 API 에서의 쿼리파라미터 바인딩이나 간단한 폼 데이터를 받을 때 사용하고, 객체로 받고 싶을 때는 @ModelAttribute를 사용하는 것 같습니다
-    - /edit
-        - 상품 수정 버튼을 클릭하면 상품 수정 폼에 @GetMapping으로 들어감
-            - GET /basic/items/1/edit
-            - itemId가 1인 데이터를 조회
-            - basic/editForm.html 화면을 클라이언트에게 반환, 사용자는 화면에서 데이터를 수정 가능
-        - 그 폼에서 상품 수정 후 저장 버튼을 누르면 @PostMapping으로 입력한 데이터를 서버로 보내고, 기존 데이터를 업데이트 한 후, /basic/items/{itemId} 페이지로 리디렉트한다.
-            - 저 경로는 @GetMapping된 public String item() 이다. 즉 거기서 return을 어차피 basic/item으로 해주니 최종적으로 상품 상세 창으로 가는거임.
-            - POST /basic/items/1/edit
-            - Content-Type: application/x-www-form-urlencoded name=NewItem&price=2000
-    - /add에서 마지막에 보냈던 통신은 POST이기 때문에 새로고침을 하면 마지막 행위를 반복하기때문에 상품이 중복해서 저장됨.
-        - 새로 고침 문제를 해결하려면 상품 저장 후에 뷰 템플릿으로 이동하는 것이 아니라, 상품 상세 화면으로 리다이렉트를 호출해주면 된다
-        - addItemV5 내용이다
-        - 즉 리다이렉트는 GET이기에 마지막 행위를 반복해도 문제없게 됨
-        - 이런 문제 해결방식을 *PRG (Post/Redirect/GET)* 이라 함
-    - addItemV6
-        - 뷰 템플릿에 메시지를 추가하고 실행해보면 "저장 완료!" 라는 메시지가 나오는 것을 확인할 수 있다. 물론 상품 목록에서 상품 상세로 이동한 경우에는 해당 메시지가 출력되지 않는다
-        - RedirectAttributes를 사용해 url 인코딩도 안전히 해주고
-        - 리턴하는 {itemId}는 addAttribute해줬던 saveItem.getId()가 대체된다.
-        - status는 리턴될때 명시를 안해주면 ?status=true라는 쿼리가 붙게 된다. 이걸로 리다이렉트 결과를 만든다.
-        - th:if : 해당 조건이 참이면 실행
-
-----
-----
-
-==item-service==
-
-- 요구사항 분석 - 서비스 제공 흐름
-    - 타임리프 쓺
-    - 검은 박스가 컨트롤러
-    - 하얀 박스가 뷰이다.
-    - 컨트롤러를 통해 뷰가 렌더링되도록 항상 설계함
-- Item class
-    - 핵심 도메인에 @Data를 쓰는건 위험할 수 있다. @Getter, @Setter로만 하자
-- ItemRepository class
-    - @Repository를 달아줘서 component scan의 대상이 된다
-    - 편의상 HashMap 사용 (동시성 고려 x, 실무는 ConcurrentHashMap 씀, long도 atomic long 써야함)
-    - 스프링은 싱글톤이라 큰 문제 없긴한데 일단 static으로 선언함
-- 참고
-    - 부트스트랩(Bootstrap)은 웹사이트를 쉽게 만들 수 있게 도와주는 HTML, CSS, JS 프레임워크이다. 하나의 CSS로 휴대폰, 태블릿, 데스크탑까지 다양한 기기에서 작동한다. 다양한 기능을 제공하여 사용자가 쉽게 웹사이 트를 제작, 유지, 보수할 수 있도록 도와준다
-    - 정적(static) 리소스에 있는 HTML은 GET일때만 받는거다. POST로 접근하면 에러뜸
-- BasicItemController class
-    - BasicItemController 생성자 메서드 만들고 @Autowired 붙이면 해당 클래스가 스프링빈에 등록될 때 생성자 주입으로 itemRepository가 스프링빈에 같이 주입이 됨. 근데 이 클래스처럼 생성자가 딱 하나만 있으면 @Autowired 생략 가능.
-    - 더 나아가 @RequiredArgsConstructor 까지 사용하면 생성자를 제거해도 됨. (spring02)에서 다룬 내용
-    - String item 메서드의 return "basic/item"은 저 경로로 뷰를 추가한거임 (당연)
-    - 정적에 위치한 items.html을 동적으로 쓰기 위해 타임리프를 사용할것이다. 그러기 위해 *templates/basic*에 items.html을 복붙한 뒤 타임리프 형태로 수정한다
-        - 타임리프 사용 선언과 속성 변경
-        - `<html xmlns:th="http://www.thymeleaf.org">`
-        - `th:href="@{/css/bootstrap.min.css}"`
-        - HTML을 그대로 볼 때는 href 속성이 사용되고, *뷰 템플릿을 거치면 th:href 의 값이 href 로 대체되면서 동적으로 변경*할 수 있다. 즉 핵심은 th:xxx 가 붙은 부분은 서버사이드에서 렌더링 되고, 기존 것을 대체한다. th:xxx 이 없으면 기존 html 의 xxx 속성이 그대로 사용된다.
-        - 예를 들어 `<td th:text="${item.price}">10000</td>`은 10000을 ${item.price} 의 값으로 변경한다.
-    - JSP는 오직 서버를 통해서 열어야 한다. 그러나 타임리프처럼 순수 HTML을 그대로 유지하면서 뷰 템플릿도 사용할 수 있는 특징을 네츄럴 템플릿이라 함
-        - 장점은 서버를 안 띄우고도 바로 절대경로를 로컬에서 띄우고 바로 수정을 확인할 수 있다는 점임
-    - /add의 경우 실제 저장할땐 post, 폼을 열땐 get 방식으로 동작하도록 @PostMapping과 @GetMapping을 "/add"에 대해 적용한다.
-        - addItem 메서드에 붙는데 버전을 여러개 만들기 위해 맨 마지막 addItem 버전에만 어노테이션 붙인거임
-    - addItemV1 : @RequestParam String itemName : itemName 요청 파라미터 데이터를 해당 변수에 받는다.
-    - addItemV2 : @RequestParam 으로 변수를 하나하나 받아서 Item 을 생성하는 과정은 불편했다. 이번에는 @ModelAttribute 를 사용해서 한번에 처리
-    - *@PathVariable*
-        - URL의 일부를 변수처럼 사용하여 데이터를 전달
-        - RESTful API에서 자원을 식별할 때 자주 사용됨
-        - 어떤 상품을 수정할지 그 id가 넘어와야 되면 이걸 씀
-        - 데이터 출처 : URL 경로 변수
-        - url 예시 : /user/{id} -> /user/100
-        - @GetMapping("/user/{id}") public String getUser(@PathVariable int id)
-    - *@RequestParam*
-        - URL의 쿼리 스트링 파라미터를 받아올 때 사용
-        - 주로 필터링, 검색, 정렬 등의 옵션을 제공할 때 유용
-        - 데이터 출처 : 쿼리 스트링(파라미터)
-        - url 예시 : /user?id=100
-        - @GetMapping("/user")public String getUser( @RequestParam int id)
-        - 즉 id를 쿼리 스트링으로 전달
-    - 즉, RESTful API에서는 @PathVariable을 선호하지만, 사용자 입력을 받는 경우에는 @RequestParam을 더 많이 사용합니다
-        - @PathVariable은 URL 템플릿에서 동적으로 변하는 값들을 추출하는데 사용합니다. 주로 리소스 식별자들을 얻는데 사용하는 것 같습니다.
-        - ex) users/1 : 식별자가 1인 유저를 조회해야할 때 => @PathVariable
-        - @RequestParam은 쿼리 파라미터 혹은 쿼리 스트링이나 폼 데이터를 바인딩할 때 사용하는 것 같습니다.
-        - ex) users?name=스프링: name이 "스프링"인 user를 조회해야 할 때 => @RequestParam
-        - @ModelAttribute는 폼 데이터를 자바 객체로 바인딩할 때, 해당 객체를 모델로 하여 뷰로 전달할 때 사용하기 좋은 것 같습니다.
-        - 그래서 저는 @PathVariable은 위의 예시와 같이 URL 템플릿에서의 변화하는 값을 바인딩할 때 사용합니다. 그리고 @RequestParam은 조회 API 에서의 쿼리파라미터 바인딩이나 간단한 폼 데이터를 받을 때 사용하고, 객체로 받고 싶을 때는 @ModelAttribute를 사용하는 것 같습니다
-    - edit
-        - 상품 수정 버튼을 클릭하면 상품 수정 폼에 @GetMapping으로 들어감
-            - GET /basic/items/1/edit
-            - itemId가 1인 데이터를 조회
-            - basic/editForm.html 화면을 클라이언트에게 반환, 사용자는 화면에서 데이터를 수정 가능
-        - 그 폼에서 상품 수정 후 저장 버튼을 누르면 @PostMapping으로 입력한 데이터를 서버로 보내고, 기존 데이터를 업데이트 한 후, /basic/items/{itemId} 페이지로 리디렉트한다.
-            - POST /basic/items/1/edit
-            - Content-Type: application/x-www-form-urlencoded name=NewItem&price=2000
-    - /add에서 마지막에 보냈던 통신은 POST이기 때문에 새로고침을 하면 마지막 행위를 반복하기때문에 상품이 중복해서 저장됨. (이 챕터 초반에 forward vs redirect 참고)
-        - 새로 고침 문제를 해결하려면 상품 저장 후에 뷰 템플릿으로 이동하는 것이 아니라, 상품 상세 화면으로 리다이렉트를 호출해주면 된다
-        - addItemV5 내용이다
-        - 즉 리다이렉트는 GET이기에 마지막 행위를 반복해도 문제없게 됨
-        - 이런 문제 해결방식을 *PRG (Post/Redirect/GET)* 이라 함
-    - addItemV6
-        - RedirectAttributes를 사용해 url 인코딩도 안전히 해주고
-        - 리턴하는 {itemId}는 addAttribute해줬던 saveItem.getId()가 대체된다.
-        - status는 리턴될때 명시를 안해주면 ?status=true라는 쿼리가 붙게 된다. 이걸로 리다이렉트 결과를 만든다
+- **Spring05 - Message**
+    - *메시지*
+        - 여러 화면에 보이는 상품명, 가격, 수량 등, label 에 있는 단어를 변경하려면 다음 화면들을 다 찾아가면서 모두 변경 해야 한다. 왜냐하면 해당 HTML 파일에 메시지가 하드코딩 되어 있기 때문이다.
+        - 이런 다양한 메시지를 한 곳에서 관리하도록 하는 기능을 Message 기능이라 한다. 예를 들어서 messages.properties 라는 메시지 관리용 파일을 만들고 각 HTML들은 다음과 같이 해당 데이터를 key 값으로 불러서 사용하는 것이다.
+        - 스프링은 기본적인 메시지와 국제화 기능을 모두 제공한다. 그리고 타임리프도 스프링이 제공하는 메시지와 국제화 기능을 편리하게 통합해서 제공한다
+        - 타임리프의 메시지 표현식 #{...} 를 사용하면 스프링의 메시지를 편리하게 조회할 수 있다.
+            - 방금 등록한 상품이라는 이름을 조회하려면 #{label.item} 이라고 하면 된다
+        - 참고로 파라미터는 다음과 같이 사용할 수 있다.
+            - hello.name=안녕 {0}
+            - < p th:text="#{hello.name(${item.itemName})}"></p >
+    - *국제화*
+        - 메시지에서 설명한 메시지 파일( messages.properties )을 각 나라별로 별도로 관리하면 서비스를 국제화 할 수 있다.
+        - 한국에서 접근한 것인지 영어에서 접근한 것인지는 인식하는 방법은 HTTP accept-language 해더 값을 사용하거 나 사용자가 직접 언어를 선택하도록 하고, 쿠키 등을 사용해서 처리하면 된다
+        - 크롬 설정 언어를 영어로 바꾸면 스프링부트에서 알아서 message_en.properties의 메시지로 맵핑시켜준다
+        - 스프링은 Locale 선택 방식을 변경할 수 있도록 LocaleResolver 라는 인터페이스를 제공하는데, 스프링 부트는 기본으로 Accept-Language 를 활용하는 AcceptHeaderLocaleResolver 를 사용한다.
+            - 만약 Locale 선택 방식을 변경하려면 LocaleResolver 의 구현체를 변경해서 쿠키나 세션 기반의 Locale 선택 기능을 사용할 수 있다. 예를 들어서 고객이 직접 Locale 을 선택하도록 하는 것
+    - 인텔리제이에서 한글 깨짐이 발생하면 Setting - File Encodings로 이동하자. Default encoding for properties files 를 ISO-8859-1 에서 UTF-8 로 변경하자. Transparent native-to-ascil conversion 체크하자. (통함)
+        - 추가로 난 제어판>시계및국가>국가또는지역>관리자옵션>시스템로캘변경>Beta:세계언어지원을위해UnicodeUTF-8사용을 체크해줬다.
+            - (안 통했음)
