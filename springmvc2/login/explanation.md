@@ -1,0 +1,180 @@
+- **Spring05 - login**
+    - 도메인
+        - 화면, UI, 기술 인프라 등등의 영역은 제외한 시스템이 구현해야 하는 핵심 비즈니스 업무 영역
+        - 향후 web을 다른 기술로 바꾸어도 도메인은 그대로 유지할 수 있어야 한다.
+        - 즉 web은 domain을 의존하지만, domain은 web을 의존하지 않아야 한다.
+        - web이 domain을 호출하도록 만들어야함
+    - **HomeController**
+        - homeLogin
+            - 로그인이 완료되면 로그인 완료된 화면을 띄워줘야한다.
+            - 로그인 안 한 사용자가 물론 들어오기에 required는 false로 해줘야 한다.
+            - *@CookieValue*로 쿠키를 조회할 수 있다
+        - *서버 세션*
+            - homeLogin, login 처럼 쿠키 값은 클라에서 서버로 전달하는 것이라 어떻게든 위변조가 가능하다
+            - 대안
+                - 쿠키에 중요한 값을 노출하지 않고, 사용자 별로 예측 불가능한 임의의 토큰(랜덤 값)을 노출하고, 서버에서 토큰 과 사용자 id를 매핑해서 인식한다. 그리고 서버에서 토큰을 관리한다.
+                - 토큰은 해커가 임의의 값을 넣어도 찾을 수 없도록 예상 불가능 해야 한다.
+                - 해커가 토큰을 털어가도 시간이 지나면 사용할 수 없도록 서버에서 해당 토큰의 만료시간을 짧게(예: 30분) 유지 한다. 또는 해킹이 의심되는 경우 서버에서 해당 토큰을 강제로 제거하면 된다
+                - 서버 세션을 사용해 해결한다.
+            - 추정이 불가능한 세션 ID인 UUID를 사용해 랜덤 값을 만든다
+            - 세션 저장소의 키값으로 이 UUID를 쓰고 밸류값으로 멤버를 저장한다
+            - 서버는 클라에 mySessionId라는 이름으로 세션 ID만 쿠키에 담아 전달
+            - 클라는 쿠키 저장소에 mySessionId 쿠키를 보관한다.
+            - 여기서 *중요한 포인트*는 회원과 관련된 정보는 전혀 클라이언트에 전달하지 않는다는 것이다. 오직 추정 불가능한 세션 ID만 쿠키를 통해 클라이언트에 전달한다.
+            - 클라이언트는 요청시 항상 mySessionId 쿠키를 전달한다. 서버에서는 클라이언트가 전달한 mySessionId 쿠키 정보로 세션 저장소를 조회해서 로그인시 보관한 세션 정보를 사용한다.
+            - 참고
+                - **HTTP 세션**: 전통적인 방식으로, 서버에 사용자 세션 정보를 저장해 관리합니다. 클라이언트는 세션 쿠키로 식별됩니다. 비교적 간단하게 구현할 수 있으나, 서버에 세션을 저장하기 때문에 확장성 면에서 JWT보다는 떨어질 수 있습니다.
+                - **JWT(Json Web Token)**: 서버에 상태를 저장하지 않고 클라이언트 측에서 JWT를 사용해 상태를 관리합니다. 확장성과 성능 면에서 유리하나, 보안 취약점을 잘 이해하고 대비해야 합니다.
+        - homeLoginV2
+            - 파라미터로 Cookie를 받는게 아니라 request를 받음
+            - Member member = (Member)sessionManager.getSession(request);
+            - 세션 관리자에 저장된 회원 정보 조회
+        - *HttpSession*
+            - 서블릿이 제공하는 HttpSession 도 결국 우리가 직접 만든 SessionManager 와 같은 방식으로 동작한다. 서블릿을 통해 HttpSession 을 생성하면 다음과 같은 쿠키를 생성한다. 쿠키 이름이 *JSESSIONID*이고, 값은 추정 불가능한 랜덤 값이다
+            - HttpSession은 사용자의 상태를 유지하기 위한 서버 측 저장 공간이다
+            - HTTP는 기본적으로 Stateless(무상태) 프로토콜이기 때문에, 사용자의 로그인 정보나 장바구니 같은 데이터를 요청 간 유지하려면 HttpSession을 사용해야 합니다.
+            - 세션은 클라이언트(브라우저)가 최초 요청을 보낼 때 생성되며, 이후 클라이언트와 서버 간의 고유한 세션 ID를 통해 식별됩니다.
+            - 서버는 클라이언트의 세션 ID를 확인하여 해당 세션 데이터를 불러오고,  클라이언트는 쿠키(JSESSIONID)나 URL을 통해 세션 ID를 서버에 전달합니다.
+            - request.getSession() 으로 생성된 httpsession은 서버에서 관리되는 session 입니다. httpSession은 우리가 사용하는 톰캣 라이브러리 내부에서 제공됩니다. Map과 같은 형태라고 이해하시면 됩니다.
+            - 예를 들면 다음과 같은 식으로 구성되어 있습니다.
+                - (사용자1-세션키, 사용자1-Session)
+                - (사용자2-세션키, 사용자2-Session)
+                - (사용자3-세션키, 사용자3-Session)
+            - 사용자1의 세션키를 입력하면 사용자1의 Session 객체가 반환됩니다. 이 Session 객체 안에 setAttribute로 원하는 값들을 보관합니다.
+            - `JSESSIONID`는 세션 자체를 식별하는 ID(키)이고 (클라이언트-서버 간 쿠키에 저장됨), `SessionConst.LOGIN_MEMBER`는 세션 내부(`session.setAttribute()`에 저장됨)에서 특정 데이터를 저장할 때 사용하는 키입니다.
+            - 쿠키를 통해 브라우저와 주고받는`JSESSIONID` 없이 세션을 유지하는 것은 불가능하지만, 서버 메모리에 저장되는`SessionConst.LOGIN_MEMBER`는 개발자가 원하는 대로 설정할 수 있음.
+            - 맞는 내용인듯?
+                - request.getSesison 을 통해 얻는 HttpSession 은  SessionManager 와 비교하면  createSession 동작이 아니라  sessionStore 와 같은 개념의 저장소를 호출하는 것 같고,
+                - HttpSession의 setAttribute 동작이 createSession 의 sessionStore.put 과 같은것이며 request.getSesison 를 통해 null 이 아닌 session 이 처음 만들어질 때, response 에 어떤 클라이언트의 sessionStore(HttpSession) 인지 구분하는 id 가 쿠키로 담기는 것 같은데
+            - **정리**
+                - *HttpSession sn = request.getSession();*
+                    - sn에는 현재 request와 연결된 HttpSession객체가 담긴다. HttpSession 객체는 클라와 연결된 세션을 나타낸다. sn을 통해 세션 내부에 데이터를 저장하거나 조회할 수 있다.
+                    - 클라가 처음 요청하면 새로운 HttpSession 객체가 생성되고 이후 같은 클라가 다시 요청하면 기존 HttpSession 객체가 반환된다
+                - *sn.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);*
+                    - 세션에 데이터를 저장하는 것이다.
+                    - SessionConst.LOGIN_MEMBER라는 키(String)로 loginMember를 저장(Object)
+                - *Member memb = (Member) session.getAttribute (SessionConst.LOGIN_MEMBER);*
+                    - 이걸로 세션에서 데이터인 loginMember를 가져올 수 있다.
+                - *model.addAttribute("member", memb);*
+                    - 가져온그걸 이런식으로 모델에 담아서 쓸 수 있다. homeLoginV3 내용임.
+        - homeLoginV3
+            - HttpSession session = request.getSession(false);
+            - 처음 들어오는 사용자가 있을 수 있으니 false로 받아야 함
+        - homeLoginV3Spring
+            - *@SessionAttribute*
+                - session.getAttribute를 대체해서 세션을 한방에 꺼내는 거임
+                - @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false)
+                - 세션에서 *SessionConst.LOGIN_MEMBER 키에 해당하는 값*을 가져와 반환
+                - 이미 로그인 된 사용자를 찾을 때는 다음과 같이 사용하면 된다. 참고로 이 기능은 세션을 생성하지 않는다
+        - *세션 타임아웃*
+            - 세션은 사용자가 로그아웃을 직접 호출해서 session.invalidate() 가 호출 되는 경우에 삭제된다. 그런데 대부분 의 사용자는 로그아웃을 선택하지 않고, 그냥 웹 브라우저를 종료한다. 문제는 HTTP가 비 연결성(ConnectionLess) 이므로 서버 입장에서는 해당 사용자가 웹 브라우저를 종료한 것인지 아닌지를 인식할 수 없다. 따라서 서버에서 세션 데이터를 언제 삭제해야 하는지 판단하기가 어렵다.
+            - 세션 생성 시점이 아니라 사용자가 서버에 최근에 요청한 시간을 기준으로 30분 정도를 유지해주는 방향이 좋다
+            - 글로벌 설정
+                - server.servlet.session.timeout=60
+                - 60초, 기본은 1800초(30분)
+            - 특정 세션 단위로 설정
+                - session.setMaxInactiveInterval(1800);
+        - homeLoginV3ArgumentResolver
+            - @Login으로 이전 버전의 파라미터 뭉치 대체함
+    - **LoginController**
+        - login & logout & expireCookie
+            - Cookie idCookie= new Cookie("memberId", String.valueOf(loginMember.getId()));
+            - 로그인에 성공하면 쿠키를 생성하고 HttpServletResponse 에 담는다.
+            - 쿠키 이름은 memberId 이고, 값은 회원의 id 를 담아둔다. 웹 브라우저는 종료 전까지 회원의 id 를 서버에 계속 보내줄 것이다
+            - 그 후 response.addCookie(idCookie); 로 서버에서 클라로 응답을 보낼때 쿠키를 넣어서 보낸다. 이때 쿠키에 시간 정보를 주지 않으면 세션 쿠키(브라우저 종료시 모두 종료)이다.
+            - 개발자 도구에서 Response Headers에서 확인 가능
+            - 이 쿠키를 가지고 로그인 됐음을 확인하고 HomeController에서 이용해준다
+            - 로그아웃 기능은 setMaxAge(0)으로 쿠키를 만료시킨다.
+            - 그 후 response.addCookie(cookie);로 응답을 보낸다
+        - loginV2 & logoutV2
+            - 세션 관리자를 통해 세션을 생성하고, 회원 데이터 보관
+        - loginV3 & logoutV3
+            - HttpSession session = request.getSession();
+            - 세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+            - session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+            - 세션에 로그인 회원 정보 보관
+            - loginV2의 mySessionId를 대체해서 SessionConst 클래스에 상수로 LOGIN_MEMBER 만든 듯 (인터페이스로 만드는게 바람직)
+            - 로그아웃은 session.invalidate();로 세션을 날린다
+        - loginV4
+            - 로그인 체크 필터에서, 미인증 사용자는 요청 경로를 포함해서 /login 에 redirectURL 요청 파라미터를 추가해서 요청했다. 이 값을 사용해서 로그인 성공시 해당 경로로 고객을 redirect 한다.
+    - SessionManagerTest
+        - 여기서는 HttpServletRequest , HttpservletResponse 객체를 직접 사용할 수 없기 때문에 테스트에서 비슷한 역할을 해주는 가짜 MockHttpServletRequest , MockHttpServletResponse 를 사용했다
+    - *Filter (서블릿 필터)*
+        - 로그인 안 된 상태로도 url 경로 치면 해당 위치로 가는 문제가 존재한다.
+        - 애플리케이션 여러 로직에서 공통으로 관심이 있는 있는 것을 공통 관심사(cross-cutting concern)라고 한다. 여기서는 등록, 수정, 삭제, 조회 등등 여러 로직에서 공통으로 인증에 대해서 관심을 가지고 있다.
+        - 이런 공통 관심사는 스프링의 AOP로도 해결할 수 있지만, 웹과 관련된 공통 관심사는 지금부터 설명할 서블릿 필터 또는 스프링 인터셉터를 사용하는 것이 좋다
+        - 필터 흐름
+            - HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 컨트롤러
+            - 필터를 적용하면 필터가 호출 된 다음에 서블릿이 호출된다. 그래서 모든 고객의 요청 로그를 남기는 요구사항이 있다면 필터를 사용하면 된다.
+            - 참고로 필터는 특정 URL 패턴에 적용할 수 있다. /* 이라고 하면 모든 요청에 필터가 적용된다. 참고로 스프링을 사용하는 경우 여기서 말하는 서블릿은 스프링의 디스패처 서블릿으로 생각하면 된다
+        - 필터 제한
+            - HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 컨트롤러 // 로그인 사용자
+            - HTTP 요청 -> WAS -> 필터(서블릿 호출X)  // 비 로그인 사용자
+        - 필터 체인
+            - HTTP 요청 -> WAS -> 필터1 -> 필터2 -> 필터3 -> 서블릿 -> 컨트롤러
+            - chain.doFilter(request, response)로 다음 필터 호출 가능. 만약 다음 필터 없으면 (디스패처) 서블릿으로 넘어감
+        - LogFilter
+            - 모든 요청을 로그로 남기는 단순한 필터
+            - Filter 인터페이스를 상속 받고 init, doFilter, destroy를 구현한다
+            - init과 destroy는 default라 필요없으면 안해줘도 됨
+            - WebConfig에서 FilterRegistrationBean으로 수동 빈 등록을 해줘야 Filter가 등록 된다. 그럼 스프링부트가 실행해줌
+        - LoginCheckFilter
+            - 인증 체크 필터를 개발해보자. 로그인 되지 않은 사용자는 상품 관리 뿐만 아니라 미래에 개발될 페이지에도 접 근하지 못하도록 함
+            - 모든 url에 적용하되 whitelist에 등록된 얘들은 통과시켜주게 설계
+            - 미인증 사용자는 로그인 화면으로 리다이렉트 한다. 그런데 로그인 이후에 다시 홈으로 이동해버리면, 원하 는 경로를 다시 찾아가야 하는 불편함이 있다. 로그인 이후에 다시 상품 관리 화면으로 들어가는 것이 좋다.
+            - 이러한 기능을 위해 현재 요청한 경로인 requestURI 를 /login 에 쿼리 파라미터로 함께 전달한다. 물론 /login 컨트롤러에서 로그인 성공시 해당 경로로 이동하는 기능은 loginV4에 있음.
+            - 미인증 사용자는 저렇게 리다이렉트 경로 넣어줘서 응답해준뒤 해당 함수에선 return을 해줘야 서블릿으로 넘어가는 걸 막는다.
+    - *Intercepter (스프링 인터셉터)*
+        - 스프링 인터셉터도 서블릿 필터와 같이 웹과 관련된 공통 관심 사항을 효과적으로 해결할 수 있는 기술이다. 서블릿 필터가 서블릿이 제공하는 기술이라면, 스프링 인터셉터는 스프링 MVC가 제공하는 기술이다. 둘다 웹과 관련 된 공통 관심 사항을 처리하지만, 적용되는 순서와 범위, 그리고 사용방법이 다르다.
+        - 스프링 인터셉터 흐름
+            - HTTP 요청 -> WAS -> 필터 -> *서블릿 -> 스프링 인터셉터* -> 컨트롤러
+            - 스프링 인터셉터는 디스패처 서블릿과 컨트롤러 사이에서 컨트롤러 호출 직전에 호출 된다.
+            - 스프링 인터셉터에도 URL 패턴을 적용할 수 있는데, 서블릿 URL 패턴과는 다르고, 매우 정밀하게 설정할 수 있 다.
+        - 스프링 인터셉터 제한
+            - HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 스프링 인터셉터 -> 컨트롤러  //로그인 사용자
+            - HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 스프링 인터셉터(컨트롤러 호출 X)  // 비 로그인 사용자
+        - 스프링 인터셉터 체인
+            - HTTP 요청 -> WAS -> 필터 -> 서블릿 -> 인터셉터1 -> 인터셉터2 -> 컨트롤러
+        - 정상 흐름
+            - preHandle : 컨트롤러 호출 전에 호출된다. (더 정확히는 핸들러 어댑터 호출 전에 호출된다.)
+                - preHandle 의 응답값이 true 이면 다음으로 진행하고, false 이면 더는 진행하지 않는다. false 인 경우 나머지 인터셉터는 물론이고, 핸들러 어댑터도 호출되지 않는다. 그림에서 1번에서 끝이 나버린다.
+            - postHandle : 컨트롤러 호출 후에 호출된다. (더 정확히는 핸들러 어댑터 호출 후에 호출된다.)
+            - afterCompletion : 뷰가 렌더링 된 이후에 호출된다.
+        - 예외가 발생시
+            - preHandle : 컨트롤러 호출 전에 호출된다.
+            - postHandle : 컨트롤러에서 예외가 발생하면 postHandle 은 호출되지 않는다.
+            - afterCompletion : afterCompletion 은 항상 호출된다. 이 경우 예외( ex)를 파라미터로 받아서 어떤 예외가 발생했는지 로그로 출력할 수 있다.
+                - afterCompletion은 예외가 발생해도 호출된다.
+                - 예외가 발생하면 postHandle() 는 호출되지 않으므로 예외와 무관하게 공통 처리를 하려면 afterCompletion() 을 사용해야 한다.
+                - 예외가 발생하면 afterCompletion()에 예외 정보( ex )를 포함해서 호출된다
+        - 인터셉터는 스프링 MVC 구조에 특화된 필터 기능을 제공한다고 이해하면 된다. 스프링 MVC를 사용하고, 특별히 필터를 꼭 사용해야 하는 상황이 아니라면 *인터셉터를 사용하는 것이 더 편리*하다
+        - WebConfig에서 등록할 때 addPathPatterns과 excludePathPatterns를 사용해서 경로를 지정해줄 수 있다
+        - 스프링 인터셉터는 호출 시점이 완전히 분리되어 있다. 따라서 preHandle 에서 지정한 값을 postHandle , afterCompletion 에서 함께 사용하려면 request.setAttribute(LOG_ID, uuid)에 담아둬야한다. afterCompletion에서 request.getAttribute(LOG_ID)로 찾아 쓸 수 있다.
+    - *ArgumentResolver를 이용한 사용자 정의 @Login*
+        - ArgumentResolver
+            - ArgumentResolver는 컨트롤러의 메서드 파라미터를 해석하고 값을 자동으로 주입해주는 기능입니다.
+            - 즉, 컨트롤러의 특정 파라미터를 자동으로 처리할 수 있도록 도와주는 인터페이스이다
+            - HandlerMethodArgumentResolver 인터페이스를 구현하여 특정 조건을 만족하는 경우, 컨트롤러 파라미터에 자동으로 값을 넣어주는 역할
+        - 로그인 회원을 조금 편리하게 찾아보자
+        - @Login 애노테이션이 있으면 직접 만든 ArgumentResolver 가 동작해서 자동으로 세션에 있는 로그인 회원을 찾아주고, 만약 세션에 없다면 null 을 반환하도록 개발
+        - Login이란 인터페이스을 미리 생성한다.
+        - LoginMemberArgumentResolver
+            - HandlerMethodArgumentResolver를 상속 받음
+            - supportsParameter 메서드
+                - 컨트롤러에서 특정 파라미터를 처리할 때, 이 ArgumentResolver가 적용될지 결정하는 역할.
+                - supportsParameter는 처음에만 호출되고 그 이후는 캐시되어서 호출되진 않는듯
+                - boolean hasLoginAnnotation = parameter.hasParameterAnnotation(Login.class);
+                    - 컨트롤러를 호출하기 전에, 파라미터에 @Login이 붙어있는지 판단
+                - boolean hasMemberType = Member.class.isAssignableFrom(parameter.getParameterType());
+                    - Member 타입인지 체크
+            - resolveArgument 메서드
+                - 컨트롤러 호출 직전에 호출 되어서 필요한 파라미터 정보를 생성해준다. 여기서는 세션에 있는 로그인 회원 정보인 member 객체를 찾아서 반환해준다. 이후 스프링MVC는 컨트롤러의 메서드를 호출하면서 여기에서 반환된 member 객체를 파라미터에 전달해준다
+                - 이전의 supportsParameter가 true여야 실행됨
+                - request와 session을 뽑고 처리한다
+                - return 시 세션에서 SessionConst.LOGIN_MEMBER 키에 해당하는 값을 가져와 반환
+        - *정리*
+            - *@Login*이 homeLoginV3Spring의 파라미터인 *@SessionAttribute*(name = SessionConst.LOGIN_MEMBER, required = false)을 대체한다
+    - Intercepter vs ArgumentResolver
+        - 우선 `ArgumentResolver`는 컨트롤러의 메서드가 호출될 때 메서드에 필요한 파라미터를 제공하는 역할을 담당합니다. 특정 조건이나 상태에 따라 파라미터를 조작하거나 추가하는 등의 기능을 수행할 수 있습니다. 강의에서 구현된 로그인한 사용자 객체를 핸들러 파라미터에 전달하는 것은 Argument Resolver를 사용하는 것이 적절하다
+        - 반면 `Interceptor`는 요청이 컨트롤러에 도착하기 전과 후의 처리를 담당합니다. 일반적으로 인증, 로깅, 권한 체크 등 전처리와 후처리의 공통 로직을 구성할 때 사용됩니다.
+        - `ArgumentResolver`로 인증과 같은 처리를 구현하는 것도 가능할 수는 있으나, `Interceptor`는 요청의 전처리와 후처리를 위한, 보다 일반적인 용도로 사용됩니다. 따라서, 한 쪽으로 완전히 대체하기보다는 각각을 적절하게 사용하는 것이 좋습니다.
