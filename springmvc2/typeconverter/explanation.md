@@ -1,0 +1,36 @@
+**Spring05 - typeconverter**
+- ConversionService
+    - 타입 컨버터를 하나하나 직접 찾아서 타입 변환에 사용하는 것은 매우 불편하다. 그래서 스프링은 개별 컨버터를 모아두고 그것들을 묶어서 편리하게 사용할 수 있는 기능을 제공
+    - *DefaultConversionService* conversionService = new DefaultConversionService();
+    - 우리는 WebMvcConfigurer 가 제공하는 addFormatters() 를 사용해서 추가하고 싶은 컨버터(사용자 정의)를 등록하면 된다. 이렇게 하면 스프링은 내부에서 사용하는 ConversionService 에 컨버터를 추가해준다
+    - 컨버터를 추가하면 추가한 컨버터가 기본 컨버터 보다 높은 우선 순위를 가진다
+    - 처리 과정
+        - @RequestParam은 @RequestParam을 처리하는 ArgumentResolver 인 RequestParamMethodArgumentResolver에서 ConversionService를 사용해서 타입을 변환한다.
+        - 부모 클래스와 다양한 외부 클래스를 호출하는 등 복잡한 내부 과정을 거치기 때문에 대략 이렇게 처리되는 것으로 이해해도 충분하다
+    - 뷰 템플릿에 컨버터 적용
+        - 타임리프는 렌더링 시에 컨버터를 적용해서 렌더링 하는 방법을 편리하게 지원한다.
+        - 타임리프는 ${{...}} 를 사용하면 자동으로 컨버전 서비스를 사용해서 변환된 결과를 출력해준다. 물론 스프링과 통 합 되어서 스프링이 제공하는 컨버전 서비스를 사용하므로, 우리가 등록한 컨버터들을 사용할 수 있다
+        - ${{number}} : 뷰 템플릿은 데이터를 문자로 출력한다. 따라서 컨버터를 적용하게 되면 Integer 타입인 10000 을 String 타입으로 변환하는 컨버터인 IntegerToStringConverter 를 실행하게 된다. 이 부분 은 컨버터를 실행하지 않아도 타임리프가 숫자를 문자로 자동으로 변환히기 때문에 컨버터를 적용할 때와 하지 않 을 때가 같다.
+        - ${{ipPort}} : 뷰 템플릿은 데이터를 문자로 출력한다. 따라서 컨버터를 적용하게 되면 IpPort 타입을 String 타입으로 변환해야 하므로 IpPortToStringConverter 가 적용된다. 그 결과 127.0.0.1:8080 가 출력된다.
+    - 폼에 컨버터 적용
+        - GET /converter/edit
+            - th:field 가 자동으로 컨버전 서비스를 적용해주어서 ${{ipPort}} 처럼 적용이 되었다. 따라서 IpPort String 으로 변환된다.
+        - POST /converter/edit
+            - @ModelAttribute 를 사용해서 String IpPort 로 변환된다.
+- Formatter
+    - 객체를 특정한 포멧에 맞추어 문자로 출력하거나 또는 그 반대의 역할을 하는 것에 특화된 기능 (Converter 의 특별한 버전)
+    - implements Formatter< Number >
+    - *FormattingConversionService*
+        - 포맷터를 지원하는 ConversionService임
+        - DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+        - FormattingConversionService 는 ConversionService 관련 기능을 상속받기 때문에 결과적으로 컨버터도 포맷터도 모두 등록할 수 있다. 그리고 사용할 때는 ConversionService 가 제공하는 convert 를 사용하면 된다.
+        - 스프링 부트는 DefaultFormattingConversionService 를 상속 받은 WebConversionService 를 내부에서 사용한다.
+    - 스프링이 제공하는 기본 포맷터
+        - 애노테이션 기반으로 원하는 형식을 지정해서 사용할 수 있는 매우 유용한 포맷터 두 가지를 기본으로 제공
+        - @NumberFormat(pattern = "###,###")
+        - @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+- 주의
+    - 메시지 컨버터( HttpMessageConverter )에는 컨버전 서비스가 적용되지 않는다. 특히 객체를 JSON으로 변환할 때 메시지 컨버터를 사용하면서 이 부분을 많이 오해하는데, HttpMessageConverter 의 역할은 HTTP 메시지 바디의 내용을 객체로 변환하거나 객체를 HTTP 메시지 바디에 입력하는 것이다.
+    - 예를 들어서 JSON을 객체로 변환하는 메시지 컨버터는 내부에서 Jackson 같은 라이브러리를 사용 한다. 객체를 JSON으로 변환한다면 그 결과는 이 라이브러리에 달린 것이다. 따라서 JSON 결과로 만들어지는 숫자나 날짜 포맷을 변경하고 싶으면 해당 라이브러리가 제공하는 설정을 통해서 포맷을 지정해야 한다. 결과적으로 이것은 컨 버전 서비스와 전혀 관계가 없다.
+    - 컨버전 서비스는 @RequestParam , @ModelAttribute , @PathVariable , 뷰 템플릿 등에서 사용할 수 있다 (즉 ResponseEntity, ResponseBody 등 에는 적용 안된다)
+    - 컨버터를 사용하든, 포맷터를 사용하든 등록 방법은 다르지만, 사용할 때는 컨버전 서비스를 통해서 일관성 있게 사용할 수 있다
