@@ -1,0 +1,107 @@
+- **Spring06 - exception**
+- exception
+    - 웹 애플리케이션은 사용자 요청별로 별도의 쓰레드가 할당되고, 서블릿 컨테이너 안에서 실행된다. 애플리케이션에서 예외가 발생했는데, 어디선가 try ~ catch로 예외를 잡아서 처리하면 아무런 문제가 없다. 그런데 만 약에 애플리케이션에서 예외를 잡지 못하고, 서블릿 밖으로 까지 예외가 전달되면 어떻게 동작할까?
+        - WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+        - 결국 톰캣 같은 WAS 까지 예외가 전달된다.
+        - 스프링 부트가 제공하는 기본 예외 페이지는 잠깐 비활성화 해놓는다
+            - server.error.whitelabel.enabled=false
+    - 서블릿은 Exception (예외)가 발생해서 서블릿 밖으로 전달되거나 또는 response.sendError() 가 호출 되었 을 때 각각의 상황에 맞춘 오류 처리 기능을 제공
+    - WebServerFactoryCustomizer를 임플해서 에러발생 상황을 커스터마이즈 했음
+    - *예외 동작 흐름*
+        1. 예외가 발생해서 WAS까지 전파된다.
+        2. WAS는 오류 페이지 경로를 찾아서 내부에서 오류 페이지를 호출한다. 이때 오류 페이지 경로로 필터, 서블릿, 인 터셉터, 컨트롤러가 모두 다시 호출된다
+        - 중요한 점은 웹 브라우저(클라이언트)는 서버 내부에서 이런 일이 일어나는지 전혀 모른다는 점이다. 오직 서버 내부에 서 오류 페이지를 찾기 위해 추가적인 호출을 한다
+        - WAS는 오류 페이지를 단순히 다시 요청만 하는 것이 아니라, 오류 정보를 request 의 attribute 에 추가해서 넘겨준다
+- *Servlet - 오류페이지*
+    - *DispatcherType
+        - 필터는 dispatcherTypes 라는 옵션을 제공
+        - 고객이 처음 요청하면 dispatcherType=REQUEST
+        - 오류 페이지를 출력하기 위한 내부 요청이면 dispatchType=ERROR
+    - /error-ex 오류 요청
+        - 셋팅
+            - 필터는 DispatchType 으로 중복 호출 제거
+                - dispatchType=REQUEST
+            - 인터셉터는 경로 정보로 중복 호출 제거
+                - excludePathPatterns("/error-page/ ** ")
+        - 동작 흐름
+            1. WAS(/error-ex, dispatchType=REQUEST) -> 필터 -> 서블릿 -> 인터셉터 -> 컨트롤러
+            2. WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+            3. WAS 오류 페이지 확인
+            4. WAS(/error-page/500, dispatchType=ERROR) -> 필터(x) -> 서블릿 -> 인터셉터(x) -> 컨트 롤러(/error-page/500) -> View
+- *Spring - 오류페이지*
+    - *BasicErrorController*
+        - 이전의 복잡한 과정 (WebServerCustomizer 를 만들고 예외 종류에 따라서 ErrorPage 를 추가하고 예외 처리용 컨트롤러 ErrorPageController 를 만듬)을 기본 제공함
+    - 동작
+        - ErrorPage 를 자동으로 등록한다. 이때 /error 라는 경로로 기본 오류 페이지를 설정한다.
+            - new ErrorPage("/error") , 상태코드와 예외를 설정하지 않으면 기본 오류 페이지로 사용된다.
+            - 서블릿 밖으로 예외가 발생하거나, response.sendError(...) 가 호출되면 모든 오류는 /error 를 호출하게 된다.
+        - BasicErrorController라는 스프링 컨트롤러를 자동으로 등록한다.
+            - ErrorPage 에서 등록한 /error 를 매핑해서 처리하는 컨트롤러다.
+            - ErrorMvcAutoConfiguration이라는 클래스가 오류 페이지를 자동으로 등록하는 역할을 함
+            - 이제 오류가 발생했을 때 오류 페이지로 /error 를 기본 요청한다. 스프링 부트가 자동 등록한 BasicErrorController 는 이 경로를 기본으로 받는다.
+    - 개발자는 오류 페이지 화면(View)만 BasicErrorController가 제공하는 룰과 우선순위에 따라서 등록하면 된다
+        - 스프링이 자동으로 에러코드 이름으로 설정된 html 파일을 자동으로 보여줍니다.
+- *API - 예외처리*
+    - produces = MediaType.APPLICATION_JSON_VALUE 추가
+        - 클라이언트가 요청하는 HTTP Header의 Accept 의 값이 application/json 일 때 해당 메서드가 호출된다는 것이다. 결국 클라어인트가 받고 싶은 미디어 타입이 json이면 이 컨트롤러의 메서드가 호출된다
+    - BasicErrorController 를 확장하면 JSON 메시지도 변경할 수 있다
+    - 스프링 부트가 제공하는 BasicErrorController 는 HTML 페이지를 제공하는 경우에는 매우 편리하다. 4xx, 5xx 등등 모두 잘 처리해준다. 그런데 API 오류 처리는 다른 차원의 이야기이다. API 마다, 각각의 컨트롤러나 예외마 다 서로 다른 응답 결과를 출력해야 할 수도 있다. 예를 들어서 회원과 관련된 API에서 예외가 발생할 때 응답과, 상품과 관련된 API에서 발생하는 예외에 따라 그 결과가 달라질 수 있다. 결과적으로 매우 세밀하고 복잡하다.
+    - 따라서 이 방법 은 HTML 화면을 처리할 때 사용하고, API 오류 처리는 뒤에서 설명할 @ExceptionHandler 를 사용하자.
+    - *HandlerExceptionResolver*
+        - MyHandlerExceptionResolver - resolveException()
+            - *에러를 씹고 response.sendError(400)으로 클라에게 400 페이지를 주고 리턴은 빈 ModelAndView를 반환해서 Exception을 처리하고 정상 호출처럼 변경함*
+            - @Configuration 붙은 WebConfig에 등록을 해줘야 작동함
+        - UserHandlerExceptionResolver - resolveException()
+            - 일단 400에러 클라한테 주고, request.getHeader("accept")으로 클라가 받을 수 있는 미디어 타입을 체크해서 json이면 오브젝맵퍼로 처리한 뒤 빈 모델 반환, html이면 뷰 그대로 반환
+            - 예외를 이곳에서 모두 처리할 수 있다.
+        - ExceptionResolver에서 예외를 다 처리.
+        - *따라서 예외가 발생해도 서블릿 컨테이너까지 예외가 전달되지 않음. 즉 스프링 MVC에서 모든 예외처리는 끝난다. 서블릿 컨테이너까지 예외가 올라가면 복잡하고 지저분하게 추가 프로세스가 실행되는걸 막았음*
+        - *결과적으로 WAS 입장에서는 정상 처리가 된 것.*
+        - 그래서 500에러가 아니라 400에러로 처리가 가능한 것.
+        - 직접 ExceptionResolver 를 구현하려고 하니 상당히 복잡하다. 지금부터 스프링이 제공하는 ExceptionResolver 들을 알아보자
+- *ExceptionResolver*
+    - 스프링 부트가 기본으로 제공하는 ExceptionResolver는 다음과 같다. HandlerExceptionResolverComposite에 다음 순서로 등록
+        1. *ExceptionHandlerExceptionResolver*
+        2. ResponseStatusExceptionResolver
+        3. DefaultHandlerExceptionResolver (우선 순위가 가장 낮다)
+    - ResponseStatusExceptionResolver
+        - 예외에 따라서 HTTP 상태 코드를 지정해주는 역할을 한다
+            - @ResponseStatus가 달려있는 예외
+                - BadRequestException 예외가 컨트롤러 밖으로 넘어가면 ResponseStatusExceptionResolver 예외가 해당 애노테이션을 확인해서 오류 코드를 HttpStatus.BAD_REQUEST (400)으로 변경하고, 메시지도 담는다.
+                - ResponseStatusExceptionResolver 코드를 확인해보면 결국 response.sendError(statusCode, resolvedReason) 를 호출하는 것을 확인할 수 있다.
+                - sendError(400) 를 호출했기 때문에 WAS에서 다시 오류 페이지( /error )를 내부 요청한다
+            - ResponseStatusException 예외
+                - @ResponseStatus는 개발자가 직접 변경할 수 없는 예외에는 적용할 수 없다. (애노테이션을 직접 넣어야 하는데, 내가 코드를 수정할 수 없는 라이브러리의 예외 코드 같은 곳에는 적용할 수 없다.) 추가로 애노테이션을 사용하기 때문에 조건에 따라 동적으로 변경하는 것도 어렵다.
+                - 이때는 ResponseStatusException 예외를 사용하면 된다
+    - DefaultHandlerExceptionResolver
+        - DefaultHandlerExceptionResolver 는 스프링 내부에서 발생하는 스프링 예외를 해결한다.
+        - 대표적으로 파라미터 바인딩 시점에 타입이 맞지 않으면 내부에서 TypeMismatchException 이 발생하는데, 이 경우 예외가 발생했기 때문에 그냥 두면 서블릿 컨테이너까지 오류가 올라가고, 결과적으로 500 오류가 발생한다.
+        - 그런데 파라미터 바인딩은 대부분 클라이언트가 HTTP 요청 정보를 잘못 호출해서 발생하는 문제이다. HTTP 에서는 이런 경우 HTTP 상태 코드 400을 사용하도록 되어 있다.
+        - DefaultHandlerExceptionResolver 는 이것을 500 오류가 아니라 HTTP 상태 코드 400 오류로 변경한다. 스프링 내부 오류를 어떻게 처리할지 수 많은 내용이 정의되어 있다
+    - 중간 정리
+        - 웹 브라우저에 HTML 화면을 제공할 때는 오류가 발생하면 BasicErrorController 를 사용하는게 편하다. 이때는 단순히 5xx, 4xx 관련된 오류 화면을 보여주면 된다. BasicErrorController 는 이런 메커니즘을 모두 구 현해두었다.
+        - 그런데 API는 각 시스템 마다 응답의 모양도 다르고, 스펙도 모두 다르다. 예외 상황에 단순히 오류 화면을 보여주는 것 이 아니라, 예외에 따라서 각각 다른 데이터를 출력해야 할 수도 있다. 그리고 같은 예외라고 해도 어떤 컨트롤러에서 발 생했는가에 따라서 다른 예외 응답을 내려주어야 할 수 있다. 한마디로 매우 세밀한 제어가 필요하다. 앞서 이야기했지만, 예를 들어서 상품 API와 주문 API는 오류가 발생했을 때 응답의 모양이 완전히 다를 수 있다.
+        - HandlerExceptionResolver를 직접 사용하기는 복잡하다. API 오류 응답의 경우 response 에 직접 데이터를 넣어야 해서 매우 불편하고 번거롭다. ModelAndView 를 반환해야 하는 것도 API에는 잘 맞지 않는다. 스프링은 이 문제를 해결하기 위해 @ExceptionHandler 라는 매우 혁신적인 예외 처리 기능을 제공한다.
+        - HandlerExceptionResolver 를 떠올려 보면 ModelAndView 를 반환해야 했다. 이것은 API 응답에는 필 요하지 않다. API 응답을 위해서 HttpServletResponse 에 직접 응답 데이터를 넣어주었다. 이것은 매우 불편하다.
+        - 특정 컨트롤러에서만 발생하는 예외를 별도로 처리하기 어렵다. 예를 들어서 회원을 처리하는 컨트롤러에서 발생 하는 RuntimeException 예외와 상품을 관리하는 컨트롤러에서 발생하는 동일한 RuntimeException 예외를 서로 다른 방식으로 처리하고 싶다면 어떻게 해야할까?
+- *@ExceptionHandler;  ExceptionHandlerExceptionResolver*
+    - @ExceptionHandler(IllegalArgumentException.class)
+        - @ExceptionHandler 애노테이션을 선언하고, 해당 컨트롤러에서 처리하고 싶은 예외를 지정해주면 된다. 해당 컨트롤러에서 예외가 발생하면 이 메서드가 호출된다.
+        - 이때 컨트롤러에 @RestController를 달아줬기에 그대로 JSON으로 반환된다
+        - return new ErrorResult("BAD", e.getMessage()); 이걸로 ErrorResult라는 객체도 바꿔 리턴하므로 정상 흐름이 됨. 그러면 Http 상태코드가 200임
+        - 이때 @ResponseStatus(HttpStatus.BAD_REQUEST)를 붙여주면 응답상태를 400으로 잘 줄 수 있다
+        -  참고로 지정한 예외 또는 그 예외의 자식 클래스는 모두 잡을 수 있다
+    - public ResponseEntity< ErrorResult> userExHandler(UserException e) {
+        - @ExceptionHandler에 예외를 지정하지 않으면 해당 메서드 파라미터 예외를 사용한다. 여기서는 UserException 을 사용한다.
+    - public ErrorResult exHandler(Exception e) {
+        - IllegalArgumentException과 UserException의 부모인 Exception은 그들이 구체적으로 처리하지 못한 나머지 예외들을 여기서 다 처리할 수 있게 된다
+        - RuntimeException 같은 경우 앞 두 예외 아니기에 여기서 처리됨
+    - return "error/500" 처럼 String을 반환하면 해당 경로의 뷰를 반환할 수도 있다. 이땐 물론 @RestController 떼야함.
+    - *@ControllerAdvice*
+        - @ExceptionHandler는 정상 코드와 예외 처리 코드가 하나의 컨트롤러에 섞여 있다. @ControllerAdvice 또는 @RestControllerAdvice 를 사용하면 둘을 분리할 수 있다
+        - 대상으로 지정한 여러 컨트롤러에 @ExceptionHandler , @InitBinder 기능을 부여해주는 역할을 한다.
+        - @ControllerAdvice 에 대상을 지정하지 않으면 모든 컨트롤러에 적용된다. (글로벌 적용)
+        - @RestControllerAdvice 는 @ControllerAdvice + @ResponseBody 와 같다. @Controller, @RestController의 차이와 처럼.
+- 정리
+    - HTML일 경우 BasicErrorController 사용
+    - API(Json) 일 경우 @Exception 사용
