@@ -1,0 +1,20 @@
+- **Spring05 - upload**
+- 파일 업로드
+    - 파일을 업로드 하려면 파일은 문자가 아니라 바이너리 데이터를 전송해야 한다. 문자를 전송하는 이 방식으로 파일을 전 송하기는 어렵다. 그리고 또 한가지 문제가 더 있는데, 보통 폼을 전송할 때 파일만 전송하는 것이 아니라는 점이다.
+    - 문자와 바이너리를 동시에 전송해야 하는 상황 이다. 이 문제를 해결하기 위해 HTTP는 multipart/form-data 라는 전송 방식을 제공한다.
+- *multipart/form-data*
+    - 멀티파트 형식은 전송 데이터를 하나하나 각각 부분( Part )으로 나누어 전송한다. parts 에는 이렇게 나누어진 데이 터가 각각 담긴다.
+    - request.getParts(); 사용
+    - application.properties에 ile.dir=/Users/kimyounghan/study/file/
+    - @Value("${file.dir}")  private String fileDir;
+        - @Value로 application.properties의 속성을 그대로 가져올 수 있다
+- *Spring - 파일 업로드*
+    - @RequestParam MultipartFile file를 파라미터에 넣는다
+    - 업로드하는 HTML Form의 name에 맞추어 @RequestParam 을 적용하면 된다.
+    - 추가로 @ModelAttribute 에서 도 MultipartFile 을 동일하게 사용할 수 있다
+        - argumentResolver가 알아서 처리해주는 덕분
+- 파일 업로드 시나리오
+    - uploadFileName : 유저가 업로드하는 파일 이름
+    - storeFileName : 서버에서 저장하는 파일 이름 (UUID 등을 이용해 이름 겹침 방지)
+    - filepathName = "attachment; filename=\"" + encodedUploadFileName + "\"";
+    - return ResponseEntity.ok() .header(HttpHeaders.CONTENT_DISPOSITION, filepathName) .body(resource); 이렇게 CONTENT_DISPOSITION을 설정해야 다운로드 받을 수 있다. 아니면 단순히 파일 경로로 이동하는 불상사
