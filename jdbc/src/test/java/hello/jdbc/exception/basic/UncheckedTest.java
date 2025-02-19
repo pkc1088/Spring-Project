@@ -3,6 +3,7 @@ package hello.jdbc.exception.basic;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.*;
 

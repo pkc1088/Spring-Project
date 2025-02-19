@@ -1,6 +1,7 @@
-package hello.jdbc.repository;
+package repository;
 
 import hello.jdbc.domain.Member;
+import hello.jdbc.repository.MemberRepositoryV0;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

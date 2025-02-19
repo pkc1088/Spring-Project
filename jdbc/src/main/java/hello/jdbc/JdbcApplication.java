@@ -11,4 +11,5 @@ public class JdbcApplication {
 	}
 
 }
+// cd /
 // cd '\Program Files (x86)\H2\bin'
