@@ -1,217 +1,189 @@
-- H2 SetUp
-    - 다운로드 버전 : 2.2.224
-    - 위치 : C:\Program Files (x86)\H2
-    - 실행 : 인텔리제이 윈도우 파워쉘에서 C:\Program Files (x86)\H2\bin으로 이동 후 h2.bat 입력 or 그냥 폴더로 가서 클릭(이땐 콘솔창 끄면 안됨)
-    - 최초 접근 : jdbc:h2:~/test 로 ~/test.mv.db를 pkc10에 생성
-    - 이후 접근 : jdbc:h2:tcp://localhost/~/test
-    - localhost:8082로도 접근 가능함
-- JDBC
-    -  JDBC 자바 표준이 등장
-        - 기존의 문제는 각각의 데이터베이스마다 커넥션을 연결하는 방법, SQL을 전달하는 방법, 그리고 결과를 응답 받는 방법이 모두 다르다는 점
-        - 데이터베이스를 다른 종류의 데이터베이스로 변경하면 애플리케이션 서버에 개발된 데이터베이스 사용 코드도 함 께 변경해야 한다.
-        - 개발자가 각각의 데이터베이스마다 커넥션 연결, SQL 전달, 그리고 그 결과를 응답 받는 방법을 새로 학습해야 한다
-        - JDBC는 자바에서 데이터베이스에 접속할 수 있도록 하는 자바 API다
-        - JDBC 표준 인터페이스는 그대로 사용하고 구현체인 MYSQL or Orcale 드라이버 등으로 바꿔끼우면 된다
-        - 그러면 여전히 '커넥션 연결, SQL 전달, 결과 응답'을 애플리케이션 서버와 특정 DB간 교환할 수 있게 된다.
-        - 최근에는 JDBC를 직접 사용하 기 보다는 JDBC를 편리하게 사용하는 다양한 기술이 존재한다. 대표적으로 SQL Mapper와 ORM 기술로 나눌 수 있다.
-    - SQL Mapper
-        - 장점: JDBC를 편리하게 사용하도록 도와준다. SQL 응답 결과를 객체로 편리하게 변환해준다. JDBC의 반복 코드를 제거해준다.
-        - 단점: 개발자가 SQL을 직접 작성해야한다.
-        - 대표 기술: 스프링 JdbcTemplate, MyBatis
-    - ORM 기술
-        - ORM은 객체를 관계형 데이터베이스 테이블과 매핑해주는 기술이다.
-        - 덕분에 개발자는 반복적인 SQL을 직접 작성하지 않고, ORM 기술이 개발자 대신에 SQL을 동적으로 만들어 실행해준다.
-        - 추가로 각각 의 데이터베이스마다 다른 SQL을 사용하는 문제도 중간에서 해결해준다.
-        - 대표 기술: JPA, 하이버네이트, 이클립스링크 JPA는 자바 진영의 ORM 표준 인터페이스이고, 이것을 구현한 것으로 하이버네이트(실무에서 주로 씀)와 이클립스 링크 등의 구현 기술이 있다.
-    - ConnectionConst class
-        - abstract으로 객체 선언을 막아 놓음 (인터페이스와의 차이는 다중 상속이 불가하다는 점), 내부 변수는 public으로 선언해서 외부에서 쓸 수 있게 해놓음
-        - [☕ 인터페이스 vs 추상클래스 용도 차이점 - 완벽 이해](https://inpa.tistory.com/entry/JAVA-%E2%98%95-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4-vs-%EC%B6%94%EC%83%81%ED%81%B4%EB%9E%98%EC%8A%A4-%EC%B0%A8%EC%9D%B4%EC%A0%90-%EC%99%84%EB%B2%BD-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
-    - DBConnectionUtil class
-        - DriverManager.getConnection(..) 를 사용하면 된다. 이렇게 하면 라이브러리에 있는 데이터베이스 드라이버를 찾아서 해당 드라이버가 제공하는 커넥션을 반환해준다.
-        - 여기서는 H2 데이터베이스 드라이버가 작동해서 실제 데이터베이스와 커넥션을 맺고 그 결과를 반환
-    - MemberRepositoryV0
-        - ResultSet
-            - ResultSet 은 다음과 같이 생긴 데이터 구조이다. 보통 select 쿼리의 결과가 순서대로 들어간다.
-            - ResultSet 내부에 있는 커서( cursor )를 이동해서 다음 데이터를 조회할 수 있다
-        - save()
-            - pstmt.setString(1, member.getMemberId());
-            - pstmt.setInt(2, member.getMoney()); 이렇게 테이블을 맵핑 시킨다
-            - 항상 PreparedStatement pstmt를 연결한 뒤엔 finally로 close 해줘야 한다.
-            - PreparedStatement 는 Statement 의 자식 타입인데, ? 를 통한 파라미터 바인딩을 가능하게 해준다. 참고로 SQL Injection 공격을 예방하려면 PreparedStatement 를 통한 파라미터 바인딩 방식을 사용해야 한다
-            - pstmt.executeUpdate(); 로 실행한다
+- Application 데이터 접근 기술
+    - SQLMapper
+        - JdbcTemplate
+        - MyBatis
+        - 개발자는 SQL만 작성하면 해당 SQL의 결과를 객체로 편리하게 매핑해준다. JDBC를 직접 사용할 때 발생하는 여러가지 중복을 제거해주고, 기타 개발자에게 여러가지 편리한 기능을 제공한 다
+    - ORM 관련 기술
+        - JPA, Hibernate
+        - 스프링 데이터 JPA
+        - Queryds
+        - dbcTemplate이나 MyBatis 같은 SQL 매퍼 기술은 SQL을 개발자가 직접 작성해야 하지만, JPA를 사용하면 기본적인 SQL은 JPA가 대신 작성하고 처리해준다. 개발자는 저장하고 싶은 객체를 마치 자바 컬렉션에 저장하 고 조회하듯이 사용하면 ORM 기술이 데이터베이스에 해당 객체를 저장하고 조회해준다.
+        - JPA(인터페이스)는 자바 진영의 ORM 표준이고, Hibernate(구현체)는 JPA에서 가장 많이 사용하는 구현체이다. 자바에서 ORM을 사용할 때는 JPA 인터페이스를 사용하고, 그 구현체로 하이버네이트를 사용한다고 생각하면 된다.
+        - 스프링 데이터 JPA, Querydsl은 JPA를 더 편리하게 사용할 수 있게 도와주는 프로젝트이다. 실무에서는 JPA를 사용하면 이 프로젝트도 꼭! 함께 사용하는 것이 좋다. 개인적으로는 거의 필수라 생각한다
+- 프로젝트 기본 구조
+    - DTO (Data Transfer Object)
+        - 기능은 없고 데이터를 전달만 하는 용도로 사용되는 객체를 뜻한다
+        - 이전에 설명한 ItemSearchCond 도 DTO 역할을 하지만, 이 프로젝트에서 Cond 는 검색 조건으로 사용한다 는 규칙을 정했다. 따라서 DTO를 붙이지 않아도 된다. ItemSearchCondDto 이렇게 하면 너무 복잡해진다. 그리고 Cond 라는 것만 봐도 용도를 알 수 있다
+        -  service 패키지들이 repository 패키지를 호출함으로 ItemUpdateDto는 repository에 위치하는게 맞다. dto를 제공하는 마지막단이 repository이니까
+    - @EventListener(ApplicationReadyEvent.class)
+        - 스프링 컨테이너가 완전히 초기화를 다 끝내고, 실행 준비가 되었을 때 발생하는 이벤트이다. 스프링이 이 시점에 해당 애노테이션이 붙은 initData() 메서드 를 호출해준다.
+        - 참고로 이 기능 대신 @PostConstruct 를 사용할 경우 AOP 같은 부분이 아직 다 처리되지 않은 시점에 호출될 수 있기 때문에, 간혹 문제가 발생할 수 있다. 예를 들어서 @Transactional 과 관련된 AOP가 적 용되지 않은 상태로 호출될 수 있다.
+        - @EventListener(ApplicationReadyEvent.class) 는 AOP를 포함한 스프링 컨테이너가 완전히 초기화 된 이후에 호출되기 때문에 이런 문제가 발생하지 않는다.
+    - ItemServiceApplication
+        - @Import(MemoryConfig.class) : 앞서 설정한 MemoryConfig 를 설정 파일로 사용한다.
+        - scanBasePackages = "hello.itemservice.web" : 여기서는 컨트롤러만 컴포넌트 스캔을 사용하고, 나머지는 직접 수동 등록한다. 그래서 컴포넌트 스캔 경로를 hello.itemservice.web 하위로 지정했다.
+        - @Profile("local") : 특정 프로필의 경우에만 해당 스프링 빈을 등록한다. 여기서는 local 이라는 이름의 프로필이 사용되는 경우에만 testDataInit 이라는 스프링 빈을 등록한다.
+            - /src/test/resources에는 profile 이름으로 test라 설정했음
+- *Profile*
+    - 스프링은 로딩 시점에 application.properties 의 spring.profiles.active 속성을 읽어서 프로필로 사 용한다. 이 프로필은 로컬(나의 PC), 운영 환경, 테스트 실행 등등 다양한 환경에 따라서 다른 설정을 할 때 사용하는 정보이다. 예를 들어서 로컬PC에서는 로컬 PC에 설치된 데이터베이스에 접근해야 하고, 운영 환경에서는 운영 데이터베이스에 접근해야 한다면 서로 설정 정보가 달라야 한다. 심지어 환경에 따라서 다른 스프링 빈을 등록해야 할 수 도 있다. 프로 필을 사용하면 이런 문제를 깔끔하게 해결할 수 있다
+- JdbcTemplate
+    - JdbcTemplate은 spring-jdbc 라이브러리에 포함되어 있는데, 이 라이브러리는 스프링으로 JDBC를 사용할 때 기본으로 사용되는 라이브러리이다. 그리고 별도의 복잡한 설정 없이 바로 사용할 수 있다
+    - 단점 : 동적 SQL을 해결하기 어렵다
+    - JdbcTemplateItemRepositoryV1
+        - KeyHolder는 Spring JDBC에서 자동 증가(autoincrement) 값을 불러오기위한 객체이다. 데이터베이스에 INSERT 문을 실행한 후에 자동으로 생성된 기본 키(primary key)를 추출하여 애플리케이션에서 사용할 수 있도록 해줍니다.
+            - 데이터를 저장할 때 PK 생성에 identity (auto increment) 방식을 사용하기 때문에, PK인 ID 값을 개발자가 직접 지정하는 것이 아니라 비워두고 저장해야 한다. 그러면 데이터베이스가 PK인 ID를 대신 생성해준다.
+            - 문제는 이렇게 데이터베이스가 대신 생성해주는 PK ID 값은 데이터베이스가 생성하기 때문에, 데이터베이스에 INSERT가 완료 되어야 생성된 PK ID 값을 확인할 수 있다.
+            - KeyHolder 와 connection.prepareStatement(~) 를 사용해서 id 를 지정해주면 INSERT 쿼리 실행 이후에 데이터베이스에서 생성된 ID 값을 조회할 수 있다.
+            - keyholder로 가져온 디비의 id를 내 item 객체의 내부 id에 저장하는 건듯
+        - findById는 RowMapper< Item>를 사용함 (ResultSet은 내부에 있는 커서( cursor )를 이동해서 다음 데이터를 조회할 수 있다)
+        - spring boot가 자동으로 dataSource와 txManager를 등록해준다. 대신 application.properties에 등록을 해줘야한다.
+    - JdbcTemplateItemRepositoryV2
+        - 파라미터를 순서대로 바인딩 하는 것은 편리하기는 하지만, 순서가 맞지 않아서 버그가 발생할 수도 있으므로 주의해서 사용해야 한다.
+        - JdbcTemplate은 이런 문제를 보완하기 위해 NamedParameterJdbcTemplate 라는 이름을 지정해서 파라미터를 바인딩 하는 기능을 제공한다
+        - *BeanPropertySqlParameterSource*(item)을 사용해 item의 멤버 변수에 맞게 sql 쿼리에 파라미터를 넘김
+        - itemRowMapper()도 return BeanPropertyRowMapper .newInstance(Item.class); 로 간략히 표현 가능. 그러면 resultset 이용해서 item의 멤버변수들 이름으로 다 넣어줌
+        - V2 생성자를 보면 의존관계 주입은 dataSource 를 받고 내부에서 NamedParameterJdbcTemplate 을 생성해서 가지고 있다. 스프링에서는 JdbcTemplate 관련 기능을 사용할 때 관례상 이 방법을 많이 사용한다
         - findById()
-            - rs = pstmt.executeQuery() 데이터를 변경할 때는 executeUpdate() 를 사용하지만, 데이터를 조회 할 때는 executeQuery() 를 사용한다. executeQuery() 는 결과를 ResultSet 에 담아서 반환한다
-            - rs.next()로 커서 역할을 한다
-    - 커넥션 풀
-        - 원래는 TCP/IP 커넥션을 새로 생성하기 위한 리소스를 매번 사용해야 한다
-        - 커넥션을 미리 생성해두고 사용해서 해결한다
-        - 커넥션 풀에 들어 있는 커넥션은 TCP/IP로 DB와 커넥션이 연결되어 있는 상태이기 때문에 언제든지 즉시 SQL을 DB 에 전달할 수 있다.
-        - 이제는 커넥션 풀을 통해 이미 생성되어 있는 커넥션을 객체 참조로 그냥 가져다 쓰기만 하면 된다. 커넥션 풀에 커넥션을 요청하면 커넥션 풀은 자신이 가지고 있는 커넥션 중에 하나를 반환한다.
-        - 즉 디비에 사용 커넥션을 맺는게 아니라 커넥션 풀에서 조회한다.
-        - 애플리케이션 로직은 커넥션 풀에서 받은 커넥션을 사용해서 SQL을 데이터베이스에 전달하고 그 결과를 받아서 처리한다. 커넥션을 모두 사용하고 나면 이제는 커넥션을 종료하는 것이 아니라, 다음에 다시 사용할 수 있도록 해당 커넥션 을 그대로 커넥션 풀에 반환하면 된다. 여기서 주의할 점은 커넥션을 종료하는 것이 아니라 커넥션이 살아있는 상 태로 커넥션 풀에 반환해야 한다는 것이다.
-        - 불필요한 커넥션 맺는 시간을 줄이고 실제 sql을 던지고 처리하는 시간에만 영향을 받게 된다는 장점
-        - 성능과 사용의 편리함 측면에서 최근에는 커넥션 풀 오픈소스로 hikariCP 를 주로 사용한다. 스프링 부트 2.0 부터는 기본 커넥션 풀 로 hikariCP 를 제공한다. 성능, 사용의 편리함, 안전성 측면에서 이미 검증이 되었기 때문에 커넥션 풀을 사용 할 때는 고민할 것 없이 hikariCP 를 사용하면 된다.
-    - *DataSource*
-        - 커넥션을 얻는 방법은 앞서 학습한 JDBC DriverManager 를 직접 사용하거나, 커넥션 풀을 사용하는 등 다양한 방법이 존재한다
-        - 우리가 앞서 JDBC로 개발한 애플리케이션 처럼 DriverManager 를 통해서 커넥션을 획득하다가, 커넥션 풀을 사용하는 방법으로 변경하려면 어떻게 해야할까? 예를 들어서 애플리케이션 로직에서 DriverManager 를 사용해서 커넥션을 획득하다가 HikariCP 같은 커넥 션 풀을 사용하도록 변경하면 커넥션을 획득하는 애플리케이션 코드도 함께 변경해야 한다. 의존관계가 DriverManager 에서 HikariCP 로 변경되기 때문이다. 물론 둘의 사용법도 조금씩 다를 것이다
-        - 자바에서는 이런 문제를 해결하기 위해 javax.sql.DataSource 라는 인터페이스를 제공한다. *DataSource는 커넥션을 획득하는 방법을 추상화 하는 인터페이스*이다. 이 인터페이스의 핵심 기능은 커넥션 조회 하나이다
-        - 대부분의 커넥션 풀은 DataSource 인터페이스를 이미 구현해두었다. 따라서 개발자는 DBCP2 커넥션 풀 , HikariCP 커넥션 풀의 코드를 직접 의존하는 것이 아니라 DataSource 인터페이스에만 의존하도록 애플리 케이션 로직을 작성하면 된다. 커넥션 풀 구현 기술을 변경하고 싶으면 해당 구현체로 갈아끼우기만 하면 된다. (스프링은 DriverManager 도 DataSource 를 통해서 사 용할 수 있도록 DriverManagerDataSource 라는 DataSource 를 구현한 클래스를 제공)
-        - 자바는 DataSource 를 통해 커넥션을 획득하는 방법을 추상화했다. 이제 애플리케이션 로직은 DataSource 인터페이스에만 의존하면 된다. 덕분에 DriverManagerDataSource 를 통해서 DriverManager 를 사용 하다가 커넥션 풀을 사용하도록 코드를 변경해도 애플리케이션 로직은 변경하지 않아도 된다.
-        - 스프링 부트는 기본적으로 *HikariCP*를 사용하여 DataSource를 자동 설정함. application.properties에 DB 연결 정보(spring.datasource.url 등)가 설정되면 HikariDataSource가 빈으로 등록됨.
-    - ConnectionTest class
-        - driverManager()
-            - con1과 con2는 각각 getConnection(URL, USERNAME, PASSWORD)으로 커넥션을 획득할 때마다 이렇게 파라미터를 넣어서 호출해야함
-        - dataSourceDriverManager()
-            - DataSource를 사용하는 방식은 처음 객체를 생성할때만 필요한 파라미터를 넘겨두고, 커넥션을 획득할때는 단순히 getConnection()만 호출하면 된다.
-            - 설정과 사용의 분리했다는 의의가 있다. 향후 변경에 유연하다
-        - dataSourceConnectionPool()
-            - MyPool connection adder : 별도의 쓰레드 사용해서 커넥션 풀에 커넥션을 채우고 있는 것을 확인할 수 있다. 이 쓰레드는 커넥션 풀에 커넥션을 최대 풀 수(10)까지 채운다. 그렇다면 왜 별도의 쓰레드를 사용해서 커넥션 풀에 커넥션을 채우는 것일까? 커넥션 풀에 커넥션을 채우는 것은 상대적으로 오래 걸리는 일이다. 애플리케이션을 실행할 때 커넥션 풀을 채울 때 까 지 마냥 대기하고 있다면 애플리케이션 실행 시간이 늦어진다. 따라서 이렇게 별도의 쓰레드를 사용해서 커넥션 풀을 채 워야 애플리케이션 실행 시간에 영향을 주지 않는다
-    - MemberRepositoryV1
-        - 외부에서 DataSource 를 주입 받아서 사용한다. 이제 직접 만든 DBConnectionUtil 을 사용하지 않 아도 된다. DataSource 는 표준 인터페이스 이기 때문에 DriverManagerDataSource 에서 HikariDataSource 로 변경되어도 해당 코드를 변경하지 않아도 된다.
-        - close()를 JdbcUtils.closeResultSet(rs);을 통해 수행함
-        - getConnection()도 의존관계 주입받은 dataSource객체로 진행함
-        - *정리* : DriverManagerDataSource HikariDataSource 로 변경해도 MemberRepositoryV1 의 코드는 전혀 변 경하지 않아도 된다. MemberRepositoryV1 는 DataSource 인터페이스에만 의존하기 때문이다. 이것이 DataSource 를 사용하는 장점이다.(DI + OCP)
-- 트랜잭션
-    - ACID
-        - 원자성(Atomicity), 일관성(Consistency), 격리 성(Isolation), 지속성(Durability)을 보장
-        - 원자성: 트랜잭션 내에서 실행한 작업들은 마치 하나의 작업인 것처럼 모두 성공 하거나 모두 실패해야 한다.
-        - 일관성: 모든 트랜잭션은 일관성 있는 데이터베이스 상태를 유지해야 한다. 예를 들어 데이터베이스에서 정한 무 결성 제약 조건을 항상 만족해야 한다. 격리성: 동시에 실행되는 트랜잭션들이 서로에게 영향을 미치지 않도록 격리한다. 예를 들어 동시에 같은 데이터 를 수정하지 못하도록 해야 한다.
-        - 격리성은 동시성과 관련된 성능 이슈로 인해 트랜잭션 격리 수준(Isolation level)을 선택할 수 있다.
-        - 지속성: 트랜잭션을 성공적으로 끝내면 그 결과가 항상 기록되어야 한다. 중간에 시스템에 문제가 발생해도 데이 터베이스 로그 등을 사용해서 성공한 트랜잭션 내용을 복구해야 한다
-    - 트랜잭션 격리 수준 : Isolation level
-        - READ UNCOMMITED(커밋되지 않은 읽기)
-        - READ COMMITTED(커밋된 읽기)
-        - REPEATABLE READ(반복 가능한 읽기)
-        - SERIALIZABLE(직렬화 가능)
-    - 트랜젝션 락
-        - SET LOCK_TIMEOUT 60000;
-            - 세션1이 트랜잭션을 커밋하거나 롤백해서 종료하지 않았으므로 아직 세션1이 락을 가지고 있다. 따라서 세션2는 락을 획득하지 못하기 때문에 데이터를 수정할 수 없다. 세션2는 락이 돌아올 때 까지 대기하게 된다
-    - 트랜잭션은 비즈니스 로직이 있는 서비스 계층에서 시작해야 한다.
-    - 비즈니스 로직이 잘못되면 해당 비즈니스 로직 으로 인해 문제가 되는 부분을 함께 롤백해야 하기 때문이다. 그런데 트랜잭션을 시작하려면 커넥션이 필요하다.
-    - 결국 서비스 계층에서 커넥션을 만들고, 트랜잭션 커밋 이후에 커넥션을 종료해야 한다. 애플리케이션에서 DB 트랜잭션을 사용하려면 트랜잭션을 사용하는 동안 같은 커넥션을 유지해야한다. 그래야 같 은 세션을 사용할 수 있다
-    - MemberRepositoryV2
-        - 애플리케이션에서 같은 커넥션을 유지하려면 어떻게 해야할까? 가장 단순한 방법은 커넥션을 파라미터로 전달해서 같 은 커넥션이 사용되도록 유지하는 것이다
-        - findbyid와 update 메서드는 getConnection으로 생성하는게 아니라 파라미터로 커넥션을 받아 그 con을 일관되게 써야함.
-        - close 할 때도 파라미터의 con을 닫아선 안됨
-        - 즉 서비스 계층에서 con을 연결해주고 서비스 계층에서 con을 close 해줘야한다. 이 CRUD를 담당하는 repositoryv2에선 그걸 결정해선 안됨
-        - 커넥션 유지가 필요한 두 메서드는 리포지토리에서 커넥션을 닫으면 안된다. 커넥션을 전달 받은 리포지토 리 뿐만 아니라 이후에도 커넥션을 계속 이어서 사용하기 때문이다. 이후 서비스 로직이 끝날 때 트랜잭션을 종료하고 닫아야 한다.
-- 애플리케이션 구조
-    - 프레젠테이션 계층
-        - UI와 관련된 처리 담당
-        - 웹 요청과 응답
-        - 사용자 요청을 검증
-        - 주 사용 기술: 서블릿과 HTTP 같은 웹 기술, 스프링 MVC
-    - 서비스 계층
-        - 비즈니스 로직을 담당
-        - 주 사용 기술: 가급적 특정 기술에 의존하지 않고, 순수 자바 코드로 작성
-    - 데이터 접근 계층
-        - 실제 데이터베이스에 접근하는 코드
-        - 주 사용 기술: JDBC, JPA, File, Redis, Mongo ..
-- *스프링의 트랜잭션*
-    - *트랜잭션 추상화*
-        - 심지어 데 이터 접근 기술에 따른 트랜잭션 구현체도 대부분 만들어두어서 가져다 사용하기만 하면 된다.
-        - 스프링 트랜잭션 추상화의 핵심은 PlatformTransactionManager 인터페이스이다.
-        - 참고 : 스프링 5.3부터는 JDBC 트랜잭션을 관리할 때
-            - DataSourceTransactionManager를 상속받아서 약간의 기능을 확장한
-            - JdbcTransactionManager를 제공한다. 둘의 기능 차이는 크지 않으므로 같은 것으로 이해하 면 된다.
-    - *리소스 동기화*
-        - 스프링은 트랜잭션 동기화 매니저를 제공한다. 이것은 쓰레드 로컬을 사용해서 커넥션을 동기화해준다. 트랜잭션 매니저는 내부에서 이 트랜잭션 동기화 매니저를 사용한다.
-        - 트랜잭션 동기화 매니저는 쓰레드 로컬을 사용하기 때문에 멀티쓰레드 상황에 안전하게 커넥션을 동기화 할 수 있다. 따라서 커넥션이 필요하면 트랜잭션 동기화 매니저를 통해 커넥션을 획득하면 된다. 따라서 이전처럼 파라미터로 커넥션을 전달하지 않아도 된다
-    - 트랜잭션 동작 원리
-        1. 트랜잭션을 시작하려면 커넥션이 필요하다. 트랜잭션 매니저는 데이터소스를 통해 커넥션을 만들고 트랜잭션을 시작한다.
-        2. 트랜잭션 매니저는 트랜잭션이 시작된 커넥션을 트랜잭션 동기화 매니저에 보관한다. (이젠 커넥션을 내가 들고 파라미터로 넘기거나 하지 않음)
-        3. 리포지토리는 트랜잭션 동기화 매니저에 보관된 커넥션을 꺼내서 사용한다 (해당 커넥션은 이미 트랜잭션이 시작된 커넥션이다). 따라서 파라미터로 커넥션을 전달하지 않아도 된다.
-        4. 트랜잭션이 종료되면 트랜잭션 매니저는 트랜잭션 동기화 매니저에 보관된 커넥션을 통해 트랜잭션을 종료하고, 커넥션도 닫는다.
-        - 트랜잭션 매니저에서 커밋이나 롤백을 담당하고 커넥션을 닫는다.
-        - 참고 : 쓰레드 로컬을 사용하면 각각의 쓰레드마다 별도의 저장소가 부여된다. 따라서 해당 쓰레드만 해당 데이터에 접근 할 수 있다
-    - MemberRepositoryV3
-        - 트잭 동기화를 사용하려면 DataSourceUtils를 사용해야 함
-        - getConnection()
-            - DataSourceUtils를 이용해 getConnection(dataSource)를 한다 (데이터접근로직인 리포지토리에서 트잭 동기화 매니저로부터 보관된 커넥션을 꺼내는 거임)
-            - 트랜잭션 동기화 매니저가 관리하는 커넥션이 있으면 해당 커넥션을 반환한다.
-            - 트랜잭션 동기화 매니저가 관리하는 커넥션이 없는 경우 새로운 커넥션을 생성해서 반환한다
-            - 따라서 트잭이 true이든 false이든 둘 다 동작이 가능하다
-        - close()
-            - DataSourceUtils.releaseConnection(con, dataSource); 해줘야 한다
-            - 트랜잭션을 사용하기 위해 동기화된 커넥션은 커넥션을 닫지 않고 그대로 유지해준다.
-            - 트랜잭션 동기화 매니저가 관리하는 커넥션이 없는 경우 해당 커넥션을 닫는다
-            - 즉 트잭 동기화 매니저에서 가져온거면 안 닫고 트잭 상황이 아니면 커넥션 닫는다.
-        - 나머지 save, update, find는 MemberRepositoryV1과 동일함 (V2의 파라미터로 con 넘기는 방식을 쓰지 않음)
-    - MemberServiceV3_1
-        - 서비스 계층에서 트랜잭션 매니저를 통해 트잭을 시작하는 행위
-        - transactionManager.getTransaction()을 통해 받아온 TransactionStatus 이용함
-        - transactionManager.commit/rollback을 트라이캐치에서 수행함. 기존의 release는 트잭매니저가 커밋롤백시 알아서 처리하니 지워도 됨
-        - V2에서는 직접 dataSource를 주입 받았는데 이젠 MemberServiceV3_1Test로 테스트 시 주입해주면 됨
-        - JDBC 기술을 사용하기에 new DataSourceTransactionManager (dataSource)로 주입 받으면 된다.
-        - 즉 서비스계층에서 어떤 dataSource를 받을지 강제하고 있지 않는거니 추상화가 잘 된거임 만약 JPA쓸거면 JpaTransactionManager로 바꾸면됨
-    - *흐름 정리*
-        - 클라이언트의 요청으로 서비스 로직을 실행한다.
-        1. 서비스 계층에서 transactionManager.getTransaction() 을 호출해서 트랜잭션을 시작한다.
-        2. 트랜잭션을 시작하려면 먼저 데이터베이스 커넥션이 필요하다. 트랜잭션 매니저는 내부에서 데이터소스를 사용해서 커넥션을 생성한다.
-        - 이떄 dataSource는 테스트 코드에서 JDBC기술을 사용하는 DriverManagerDataSource의 객체인 dataSource를 PlatformTransactionManager의 구현체인 DataSourceTransactionManager의 파라미터로 넘겨서 얻어진거임
-        3. 커넥션을 수동 커밋 모드로 변경해서 실제 데이터베이스 트랜잭션을 시작한다. (스프링이 알아서)
-        4. 커넥션을 트랜잭션 동기화 매니저에 보관한다. (스프링이 알아서)
-        5. 트랜잭션 동기화 매니저는 쓰레드 로컬에 커넥션을 보관한다. 따라서 멀티 쓰레드 환경에 안전하게 커넥션을 보관 할 수 있다. (스프링이 알아서
-        6. 서비스는 비즈니스 로직을 실행하면서 리포지토리의 메서드들을 호출한다. 이때 커넥션을 파라미터로 전달하지 않는다.
-        7. 리포지토리 메서드들은 트랜잭션이 시작된 커넥션이 필요하다. 리포지토리는 DataSourceUtils.getConnection() 을 사용해서 트랜잭션 동기화 매니저에 보관된 커넥션을 꺼내서 사용한다. 이 과정을 통해서 자연스럽게 같은 커넥션을 사용하고, 트랜잭션도 유지된다.
-        8. 획득한 커넥션을 사용해서 SQL을 데이터베이스에 전달해서 실행한다.
-        9. 서비스 계층은 비즈니스 로직이 끝나고 트랜잭션을 종료한다. 트랜잭션은 커밋하거나 롤백하면 종료된다.
-        10. 트랜잭션을 종료하려면 동기화된 커넥션이 필요하다. 트랜잭션 동기화 매니저를 통해 동기화된 커넥션을 획득한다.
-        11. 획득한 커넥션을 통해 데이터베이스에 트랜잭션을 커밋하거나 롤백한다.
-        12. 전체 리소스를 정리한다.
-            1. 트랜잭션 동기화 매니저를 정리한다. 쓰레드 로컬은 사용후 꼭 정리해야 한다.
-            2. con.setAutoCommit(true) 로 되돌린다. 커넥션 풀을 고려해야 한다. con.close() 를 호출해셔 커넥션을 종료한다.
-            3. 커넥션 풀을 사용하는 경우 con.close() 를 호출하면 커넥션 풀에 반환된다
-- 트랜잭션 템플릿
-    - MemberServiceV3_2
-        - txTemplate.executeWithoutResult((status) ->로 트잭 시작과 커밋/롤백을 진행해준다. 이제 우리는 bizLogic인 비즈니스 로직만 생각하면 됨
-        - 트잭 시작과 끝의 반복되는 코드를 줄였다는 의의가 있음
-- *트랜잭션 AOP*
-    - 프록시 도입 전: 서비스에 비즈니스 로직과 트랜잭션 처리 로직이 함께 섞여있다.
-    - 프록시 도입 후: 트랜잭션 프록시가 트랜잭션 처리 로직을 모두 가져간다. 그리고 트랜잭션을 시작한 후에 실제 서 비스를 대신 호출한다. 트랜잭션 프록시 덕분에 서비스 계층에는 순수한 비즈니즈 로직만 남길 수 있다
-    - 스프링이 제공하는 트랜잭션 AOP
-        - 스프링이 제공하는 AOP 기능을 사용하면 프록시를 매우 편리하게 적용할 수 있다.
-        - 스프링 핵심 원리 - 고급편을 통해 AOP를 열심히 공부하신 분이라면 아마도 @Aspect , @Advice , @Pointcut 를 사용해서 트랜잭션 처리용 AOP를 어떻게 만들지 머리속으로 그림이 그려질 것이다. 물론 스프링 AOP를 직접 사용해서 트랜잭션을 처리해도 되지만, 트랜잭션은 매우 중요한 기능이고, 전세계 누구 나 다 사용하는 기능이다. 스프링은 트랜잭션 AOP를 처리하기 위한 모든 기능을 제공한다.
-        - 스프링 부트를 사용하 면 트랜잭션 AOP를 처리하기 위해 필요한 스프링 빈들도 자동으로 등록해준다. 개발자는 트랜잭션 처리가 필요한 곳에 *@Transactional*만 붙여주면 된다. 스프링의 트랜잭션 AOP는 이 애노테이션을 인식해서 트랜잭션 프록시를 적용해준다.
-        - MemberServiceV3_3Test에 @SpringBootTest 넣어줘야 스프링을 띄워서 @Transaction을 인식하고 처리해준다. 그리고 datSource나 변수들을 빈등록 해줘야함. 그래야 프록시에서 갖다 쓸 수 있음 (사실 지워도 됨)
-        - AOP 프록시가 의존관계를 주입 받은 거임
-- *스프링 부트의 자동 리소스 등록*
-    - 스프링 부트가 등장하기 이전에는 데이터소스와 트랜잭션 매니저를 개발자가 직접 스프링 빈으로 등록해서 사용했다. 그런데 스프링 부트로 개발을 시작한 개발자라면 데이터소스나 트랜잭션 매니저를 직접 등록한 적이 없을 것이다.
-    - 데이터소스 - 자동 등록
-        - 스프링 부트는 데이터소스( DataSource )를 스프링 빈에 자동으로 등록한다.
-        - 자동으로 등록되는 스프링 빈 이름: dataSource
-        - 이때 스프링 부트는 다음과 같이 application.properties 에 있는 속성을 사용해서 DataSource 를 생성한다. 그리고 스프링 빈에 등록한다
-        - 참고로 개발자가 직접 데이터소스를 빈으로 등록하면 스프링 부트는 데이터소스를 자동으로 등록하지 않는다.
-        - 스프링 부트가 기본으로 생성하는 데이터소스는 커넥션풀을 제공하는 HikariDataSource 이다.
-        - 커넥션풀과 관련된 설정도 application.properties 를 통해서 지정할 수 있다. spring.datasource.url 속성이 없으면 내장 데이터베이스(메모리 DB)를 생성하려고 시도한다.
-    - 트랜잭션 매니저 - 자동 등록
-        - 스프링 부트는 적절한 트랜잭션 매니저(PlatformTransactionManager )를 자동으로 스프링 빈에 등록한다.
-        - 자동으로 등록되는 스프링 빈 이름: transactionManager
-        - 참고로 개발자가 직접 트랜잭션 매니저를 빈으로 등록하면 스프링 부트는 트랜잭션 매니저를 자동으로 등록하지 않는다
-        - 어떤 트랜잭션 매니저를 선택할지는 현재 등록된 라이브러리를 보고 판단하는데, JDBC를 기술을 사용하면 DataSourceTransactionManager 를 빈으로 등록하고, JPA를 사용하면 JpaTransactionManager 를 빈으 로 등록한다. 둘다 사용하는 경우 JpaTransactionManager 를 등록한다. 참고로 JpaTransactionManager는 DataSourceTransactionManager 가 제공하는 기능도 대부분 지원한다.
-- 예외 처리
-    - 예외 상속 계층 그림 확인하기
-    - 체크 vs 언체크(런타임)
-        - 체크 예외: 예외를 잡아서 처리하지 않으면 항상 throws 에 던지는 예외를 선언해야 한다.
-        - 언체크 예외: 예외를 잡아서 처리하지 않아도 throws 를 생략할 수 있다.
-    - 웹 애플리케이션이라면 서블릿의 오류 페이지나, 또는 스프링 MVC가 제공하는 ControllerAdvice 에서 이런 예외를 공통으로 처리한다.
-        - 이런 문제들은 보통 사용자에게 어떤 문제가 발생했는지 자세히 설명하기가 어렵다. 그래서 사용자에게는 "서비스에 문제가 있습니다." 라는 일반적인 메시지를 보여준다.
-        - API라면 보통 HTTP 상태코드 500(내부 서버 오류)을 사용해서 응답을 내려준다
-    - throws SQLException, ConnectException 처럼 예외를 던지는 부분을 코드에 선언하는 것이 왜 문제가 될 까? 바로 서비스, 컨트롤러에서 java.sql.SQLException 을 의존하기 때문에 문제가 된다 (Jdbc 기술임).
-    - 따라서 언체크(런타임) 예외로 바꿔서 해결한다
-    - 런타임 예외는 문서화를 잘해야 한다.
-    - 또는 코드에 throws 런타임예외 을 남겨서 중요한 예외를 인지할 수 있게 해준다.
-    - 예외를 전환할 때는 꼭! 기존 예외를 포함하자. *Throwable*
-- 스프링의 예외 처리, 반복
-    - 서비스가 처리할 수 없으므로 리포지토리가 던지는 SQLException 체크 예외를 런타임 예외로 전환해서 서비스 계 층에 던지자. 이렇게 하면 서비스 계층이 해당 예외를 무시할 수 있기 때문에, 특정 구현 기술에 의존하는 부분을 제거하고 서비스 계층을 순수하게 유지할 수 있다
-    - SQLException이 체크 예외이기 때문에 MemberRepository 인터페이스에도 해당 체크 예외가 선언 되어 있어야 한다. 따라서 우린 repository의 CRUD를 다 런타임으로 바꾸고 MemberRepository 인터페이스를 구현하는 방식으로 만들어서 인터페이스화 시킴과 동시에 SQLException을 선언하지 않아도 되도록 만들 것임
-    - SQLException을 런타임예외로 감싸서 던질거라 MyDbException을 만듦
-        - MemberRepositoryV4_1에서 throw new MyDbException(e); 로 던지기만 하면 됨
-        - 만약 예외를 잡아서 처리하고 싶으면 SQLException 대신 MyDuplicateKeyException로 던져서 처리하면 됨
-    - 스프링의 예외 변환기
-        - SQLExceptionTranslator : 스프링은 데이터베이스에서 발생하는 오류 코드를 스프링이 정의한 예외로 자동으로 변환해주는 변환기를 제공한다.
-        - 드디어 예외에 대한 부분을 깔끔하게 정리했다. 스프링이 예외를 추상화해준 덕분에, 서비스 계층은 특정 리포지토리의 구현 기술과 예외에 종속적이지 않게 되었다. 따 라서 서비스 계층은 특정 구현 기술이 변경되어도 그대로 유지할 수 있게 되었다. 다시 DI를 제대로 활용할 수 있게 된 것이다. 추가로 서비스 계층에서 예외를 잡아서 복구해야 하는 경우, 예외가 스프링이 제공하는 데이터 접근 예외로 변경되어서 서비스 계층에 넘어오기 때문에 필요한 경우 예외를 잡아서 복구하면 된다
-    - *JdbcTemplate*
-        - MemberRepositoryV5
-        - JDBC를 더 쉽게 사용할 수 있도록 도와주는 스프링의 유틸리티 클래스
-        - 커넥션 열고 닫고 반복되는 코드를 모두 알아서 관리해줌
+            - Map< String, Object> param = Map.of("id", id);
+            - id 값을 Map에 저장하여 SQL 쿼리에 전달할 파라미터를 준비합니다.
+        - update()
+            - MapSqlParameterSource : 맵과 유사한 기능
+            - itemId도 같이 넣어줘야하기에 빈프로퍼티sql파라미터소스 대신 저 맵파라미터소스를 사용했음
+    - JdbcTemplateItemRepositoryV3
+        - INSERT SQL를 직접 작성하지 않아도 되도록 SimpleJdbcInsert 라는 편리한 기능을 제공한 다
+        - @SpringBootTest
+            - ItemRepositoryTest 는 @SpringBootTest 를 사용한다. @SpringBootTest 는 @SpringBootApplication 를 찾아서 설정으로 사용한다.
+    - H2 데이터베이스를 용도에 따라 2가지로 구분
+        - jdbc:h2:tcp://localhost/~/test local 에서 접근하는 서버 전용 데이터베이스
+        - jdbc:h2:tcp://localhost/~/testcase 테스트케이스에서 사용하는 전용 데이터베이스 <- pkc10에 testcase.mv.db 생성된걸 확인할 수 있다
+    - 트랜잭션과 롤백 전략
+        - 테스트가 끝나고 나서 트랜잭션을 강제로 롤백해버리면 데이터가 깔끔하게 제거된다.
+        - 테스트를 하면서 데이터를 이미 저장했는데, 중간에 테스트가 실패해서 롤백을 호출하지 못해도 괜찮다. 트랜잭션을 커 밋하지 않았기 때문에 데이터베이스에 해당 데이터가 반영되지 않는다
+        - 테스트는 각각의 테스트 실행 전 후로 동작하는 *@BeforeEach*, *@AfterEach*라는 편리한 기능을 제공한다.
+        - PlatformTransactionManager (데이터소스와 마찬가지로 트잭매니저는 스프링에서 자동으로 주입해줌)을 선언해주고 이 객체로 트잭 시작 및 롤백을 before/aftereach로 정의해준다
+        - 스프링은 테스트 데이터 초기화를 위해 트랜잭션을 적용하고 롤백하는 방식을 *@Transactional* 애노테이션 하나로 깔끔하게 해결해준다.
+        - 스프링이 제공하는 @Transactional 애노테이션은 로직이 성공적으로 수행되면 커밋하도록 동작한다. 그런데 @Transactional 애노테이션을 *테스트에서 사용하면 아주 특별하게 동작*한다. @Transactional 이 테스트에 있으면 스프링은 테스트를 트랜잭션 안에서 실행하고, 테스트가 끝나면 트랜잭션을 자동으로 롤백시켜 버린다. 만약 눈으로 디비에 저장 잘 되는지 확인해보고 싶으면 @Commit 혹은 @Rollback(false) 넣어주면 확인 가능하다
+    - 임베디드 모드
+        - H2 데이터베이스는 자바로 개발되어 있고, JVM안에서 메모리 모드로 동작하는 특별한 기능을 제공한다. 그래서 애플 리케이션을 실행할 때 H2 데이터베이스도 해당 JVM 메모리에 포함해서 함께 실행할 수 있다. DB를 애플리케이션에 내장해서 함께 실행한다고 해서 임베디드 모드(Embedded mode)라 한다. 물론 애플리케이션이 종료되면 임베디드 모드로 동작하는 H2 데이터베이스도 함께 종료되고, 데이터도 모두 사라진다. 쉽게 이야기해서 애플리케이션에서 자바 메모리를 함께 사용하는 라이브러리처럼 동작하는 것이다.
+        - 스프링 부트는 SQL 스크립트를 실행해서 애플리케이션 로딩 시점에 데이터베이스를 초기화하는 기능을 제공한다. 위치가 src/test 이다. 이 부분을 주의하자. 그리고 파일 이름도 맞아야 한다 (schema.sql)
+        - 스프링 부트는 개발자에게 정말 많은 편리함을 제공하는데, 임베디드 데이터베이스에 대한 설정도 기본으로 제공한다. 스프링 부트는 데이터베이스에 대한 별다른 설정이 없으면 임베디드 데이터베이스를 사용한다.
+        - test - application.properties의 spring.datasource.url , spring.datasource.username 를 사용하지 않도록 주석처리 하면 데이터베이스에 접근하는 모든 설정 정보가 사라지게 된다. 이렇게 별다른 정보가 없으면 스프링 부트는 임베디드 모드로 접근하는 데이터소스( DataSource )를 만들어서 제공한 다. 바로 앞서 우리가 직접 만든 데이터소스와 비슷하다 생각하면 된다
+        - *정리* : 그래서 사실상 테스트할 ItemRepositoryTest에 @Transactional 붙여주고 테스트용 데이터베이스를 위한 properties에 url과 username 을 따로 기입하지 않으면 알아서 스프링부트가 임베디드 모드로 메모리용 디비 만들어 주고 @Transactional을 인식해서 롤백 시켜준다.
+- MyBatis
+    - 이제부터 본격적으로 MyBatis를 사용해서 데이터베이스에 데이터를 저장해보자. XML에 작성한다는 점을 제외하고는 JDBC 반복을 줄여준다는 점에서 기존 JdbcTemplate과 거의 유사하다
+    - ItemMapper interface
+        - 마이바티스 매핑 XML을 호출해주는 매퍼 인터페이스이다. 이 인터페이스에는 @Mapper 애노테이션을 붙여주어야 한다. 그래야 MyBatis에서 인식할 수 있다. 이 인터페이스의 메서드를 호출하면 다음에 보이는 xml 의 해당 SQL을 실행하고 결과를 돌려준다
+    - MyBatisItemRepository
+        - ItemRepository의 구현체이다 (ItemMapper의 구현체가 아님)
+        - 단순히 ItemMapper 에 기능을 위임한다
+        - private final ItemMapper itemMapper; 로 의존관계를 주입 받는다. @Mapper가 붙어있기에 mybatis에서 인식하고 스프링에 등록해주기 때문에 가능한 것.
+        - update 동작의 경우 itemMapper.update(itemId, updateParam); 이런식으로 Mapper에 파라미터를 넘기면 맵퍼가 xml을 보고 맵핑시켜서 sql을 실행시킨다
+    - MyBatisConfig
+        - 의존관계 주입을 dataSource로 부터 받는게 아니라 itemMapper이기에 변경해준다. 데이터소스나 트잭매니저는 mybatis에서 알아서 연결시켜준다.
+    - *동적 프록시 기술*
+        - ItemMapper 매퍼 인터페이스의 구현체가 없는데 어떻게 동작한 것일까? MyBatis 스프링 연동 모듈에서 자동으로 처리해주기 떄문임
+        1. 애플리케이션 로딩 시점에 MyBatis 스프링 연동 모듈은 @Mapper 가 붙어있는 인터페이스를 조사한다.
+        2. 해당 인터페이스가 발견되면 동적 프록시 기술을 사용해서 ItemMapper 인터페이스의 구현체를 만든다.
+        3. 생성된 구현체를 스프링 빈으로 등록한다
+- JPA
+    - Item class
+        - *@Entity*
+            - Item 클래스에 를 넣어줘서 JPA에서 관리하는 객체로 설정한다.
+            - 즉 테이블과 맵핑이 돼서 관리되는 객체가 된다.
+            - *@Table(name = "item")*
+                - 객체 명과 동일하면 생략 가능
+        - *@Id*
+            - 해당 어노테로 PK를 설정한다.
+        - *@GeneratedValue(strategy = GenerationType.IDENTITY)*
+            - 디비에서 오토인크리먼트로 값을 하나씩 넣어주기 위해 설정
+        - *@Column(name = "item_name")*
+            - String itemName에 붙여주면 해당 변수가 데이터베이스의 item_name으로 맵핑됨을 명시
+            - price처럼 컬럼명이 동일하면 안 붙여줘도 된다.
+            - length = 10 처럼 길이 명시 가능
+            - 사실 스프링부트는 itemName을 item_name으로 변환해주는 규칙을 갖고 있기에 지금 상황에선 제거해줘도 상관 없긴 함. 이름이 많이 다른 경우 붙여줘야함
+        - JPA는 Public 또는 Protected의 기본 생성자가 필수이다
+    - JpaItemRepository
+        - JPA의 모든 데이터 변경(등록, 수정, 삭제)은 트랜잭션 안에서 이루어져야 한다. 조회는 트 랜잭션이 없어도 가능하다. 변경의 경우 일반적으로 서비스 계층에서 트랜잭션을 시작하기 때문에 문제가 없다. 하지만 이번 예제에서는 복잡한 비즈니스 로직이 없어서 서비스 계층에서 트랜잭션을 걸지 않았다. JPA에서는 데 이터 변경시 트랜잭션이 필수다. 따라서 리포지토리에 트랜잭션을 걸어주었다. 다시 한 번 강조하지만 *일반적으로는 비즈니스 로직을 시작하는 서비스 계층에 트랜잭션을 걸어주는 것이 맞다.*
+        - *EntityManager*
+            - private final EntityManager em;
+            - 생성자를 보면 스프링을 통해 엔티티 매니저( EntityManager ) 라는 것을 주입받은 것을 확인할 수 있다. JPA의 모든 동작은 엔티티 매니저를 통해서 이루어진다. 엔티티 매니저는 내부에 데이터소스를 가지고 있고, 데이터베이스에 접근할 수 있다.
+        - update()
+            - itemId(PK)로 조회해서 새로운 객체에 조회정보를 담은 후 그 객체에 setItemName, setPrice등으로 변경을 해주면 따로, 그 객체를 원본에 따로 덮어쓰지 않아도 신기하게 자동으로 반영을 시켜준다.
+            - JPA가 내부에 스냅샷을 떠놓고 변경 사항을 다 인지하고 있고 transaction이 커밋되는 시점에 쿼리를 날리기 떄문임. 즉 Entity에 변경됨을 감지하고 업데이트 시킨다.
+            - save를 하면 *JPA 내부 캐시*에 잠깐 저장 되어 있는다 그래서 update를 해도 캐시에서 값이 바뀐다 그렇다면 find했을때 jpa 캐시에 있는 데이터를 조회한다. 실제 update를 보고 싶으면 @Commit을 붙이면 볼 수 있다.
+            - JPA는 트랜잭션이 커밋되는 시점에, 변경된 엔티티 객체가 있는지 확인한다. 특정 엔티티 객체가 변경된 경우에 는 UPDATE SQL을 실행한다. JPA가 어떻게 변경된 엔티티 객체를 찾는지 명확하게 이해하려면 영속성 컨텍스트라는 JPA 내부 원리를 이해해 야 한다. 이 부분은 JPA 기본편에서 자세히 다룬다. 지금은 트랜잭션 커밋 시점에 JPA가 변경된 엔티티 객체를 찾아서 UPDATE SQL을 수행한다고 이해하면 된다. 테스트의 경우 마지막에 트랜잭션이 롤백되기 때문에 JPA는 UPDATE SQL을 실행하지 않는다. 테스트에서 UPDATE SQL을 확인하려면 @Commit 을 붙이면 확인할 수 있다.
+        - findAll()
+            - String jpql = "select i from Item i";
+                - jpql : 객체 쿼리 언어
+                - 이때 Item은 디비가 아닌 내 자바 Item 엔티티 객체를 말한다
+                - i는 아이템 엔티티의 별칭(alias)이다. 이걸로 JPA가 i.itemName 이런식으로 찾는다 (findAll의 동적쿼리에 의해. 당연히 itemMapper.xml 이거랑은 상관 없는거임)
+            - em.createQuery(jpql, Item.class);
+                - 반환형이 Item.class
+            - JPA도 동적쿼리에 약하다
+            - SQL이 테이블을 대상으로 한다면, JPQL은 엔티티 객체를 대상으로 SQL을 실행한다 생각하면 된다. 엔티티 객체를 대상으로 하기 때문에 from 다음에 Item 엔티티 객체 이름이 들어간다. 엔티티 객체와 속성의 대소문 자는 구분해야 한다
+        - 실무에서는 Querydsl로 지저분한 동적쿼리 문제를 해결함. 사실상 필수
+    - 예외처리
+        - EntityManager 는 순수한 JPA 기술이고, 스프링과는 관계가 없다. 따라서 엔티티 매니저는 예외가 발생하면 JPA 관련 예외를 발생시킨다
+        - @Repository 가 붙은 클래스는 컴포넌트 스캔의 대상이 된다. @Repository 가 붙은 클래스는 예외 변환 AOP의 적용 대상이 된다. 스프링과 JPA를 함께 사용하는 경우 스프링은 JPA 예외 변환기 ( PersistenceExceptionTranslator )를 등록한다. 예외 변환 AOP 프록시는 JPA 관련 예외가 발생하면 JPA 예외 변환기를 통해 발생한 예외를 스프링 데이 터 접근 예외로 변환한다
+            - @Controller는 컴포넌트 스캔 대상임과 동시에 mvc 기능을 사용한다는 추가적인 기능이 있고, @Service는 그냥 깡통임 즉 컴포넌트 스캔 대상임만 인식됨, @Repository는 컴스 대상 + 예외 변환 AOP의 적용 대상이 된다
+        - 결과적으로 리포지토리에 @Repository 애노테이션만 있으면 스프링이 예외 변환을 처리하는 AOP를 만들어준다. 즉 JPA 에러를 던지는게 아니라 스프링 에러를 던지도록 한다.
+        - *AOP 프록시*
+            - 정의:
+                - AOP(Aspect-Oriented Programming)에서 핵심 비즈니스 로직에 부가 기능(예: 로깅, 트랜잭션)을 주입하기 위해 사용하는 객체입니다.
+                - 대상 객체(Target Object) 대신 대리(Proxy) 객체가 메서드를 호출하면서 부가 기능을 수행합니다.
+            - 작동 방식:
+                1. 클라이언트가 메서드를 호출하면,
+                2. 프록시 객체가 먼저 호출을 가로챕니다.
+                3. 부가 기능(예: 로깅, 트랜잭션)을 수행한 후,
+                4. 대상 객체의 실제 메서드를 호출합니다.
+                5. 메서드 실행 결과를 클라이언트에 반환합니다.
+            - AOP 프록시의 유형:
+                - 1. JDK 동적 프록시 (JDK Dynamic Proxy)
+                    - 인터페이스를 구현한 클래스에만 적용됩니다.
+                    - java.lang.reflect.Proxy를 사용합니다.
+                - 2. CGLIB 프록시
+                    - 클래스를 상속하여 프록시 객체를 생성합니다.
+                    - 인터페이스가 없는 클래스에도 적용할 수 있습니다.
+                    - 메서드 오버라이딩 방식으로 동작합니다.
+- Spring data JPA
+    - SpringDataJpaItemRepository
+        - JpaRepository 인터페이스를 상속받는 인터페이스
+        - < 엔티티, pk 타입> 으로 설정해준다
+        - 이렇게만 선언해주면 기본적인 CRUD는 다 가능함
+    - 단순히 itemServiceV1 코드 대신 Springdata 주입 받아서 repository에 명시된대로 쓰면 안되나 생각 들 수 있지만 그럴 수 없음 (ItemService 는 ItemRepository 에 의존하기 때문에 ItemService 에서 SpringDataJpaItemRepository 를 그대로 사용할 수 없다)
+    - JpaItemRepositoryV2
+        - 여기서 springdata를 주입받는다
+        - 그리고 save(), update() 등의 메서드에 spring data를 리턴하거나 사용하는 방식을 쓴다
+        - 예를 들어 save() 메서드의 return repository.save(item)에서 save는 springdata에서 제공하는 거임
+    - itemService1이 springdatajpa를 주입 받지 않고 JpaItemRepositoryV2가 springdatajpa를 주입받고 그걸 거쳐서 사용하는 형태는, 유지보수 관점에서 ItemService 를 변경하지 않고, ItemRepository 의 구현체를 변경할 수 있는 장점이 있다. 그러니까 DI, OCP 원칙을 지킬 수 있다는 좋은 점이 분명히 있다. 하지만 반대로 구조가 복잡해지면서 어 댑터 코드와 실제 코드까지 함께 유지보수 해야 하는 어려움도 발생한다
+        - *너무 DI, OCP 원칙을 고수하려하면 복잡한 어댑터들이 생겨나고 이는 코드 구조를 복잡하게 만든다*
+- QueryDSL
+    - JPA, SQL 같은 기술들을 위해 type-safe SQL을 만드는 프레임워크이다. 컴파일 시점에 sql 오류를 다 잡아 줄 수 있다는 장점이 있음. 즉 서비스 하다가 쿼리문 띄어쓰기 잘못해서 생기는 문제를 사전에 방지해줌
+    - Entity를 읽어서 Qclass를 만들어줌
+    - build/generated/sources/annotationProcessor/java/main
+    - /hello.itemservice.domain 위치에 Qitem 클래스가 생성된걸 확인할 수 있다
+    - 이걸 코드에 가져다 쓸 수 있다
+    - JpaItemRepositoryV3
+        - JPAQueryFactory를 선언해야 Querydsl(Jpql의 빌더 역할)을 사용할 수 있다
+        - 나머지 메서드는 기본 JPA와 동일하지만 동적 쿼리를 처리하는 findAll을 Querydsl 형태로 수정함 이때 Qitem을 쓴다. 이때 Qitem.item이라 하지 않고 Qitem을 static import 시켜서 간단히 item으로 쓴다
+- 복잡한 코드 구조를 개선 (SpringDataJPA + QueryDSL)
+    - save, update 같은 간단한 기능은 기본 JPA를 쓰고 복잡한것만 QueryDSL을 쓰도록 구조를 개선하자
+    - 이렇게 둘을 분리하면 기본 CRUD와 단순 조회는 스프링 데이터 JPA가 담당하고, 복잡한 조회 쿼리는 Querydsl이 담당하게 된다. 물론 ItemService 는 기존 ItemRepository 를 사용할 수 없기 때문에 코드를 변경해야 한다.
+    - ItemRepositoryV2
+        - JpaRepository 를 인터페이스 상속 받아서 스프링 데이터 JPA의 기능을 제공하는 리포지토리가 된다.
+        - 기본 CRUD는 이 기능을 사용하면 된다. 여기에 추가로 단순한 조회 쿼리들을 추가해도 된다
+        - 얘는 config에 추가 안해줘도 된다 스프링이 알아서 빈등록 해준다
+    - ItemQueryRepositoryV2
+        - Querydsl을 사용해서 복잡한 쿼리 기능을 제공하는 리포지토리이다.
+        - Querydsl을 사용한 쿼리 문제에 집중되어 있어서, 복잡한 쿼리는 이 부분만 유지보수 하면 되는 장점이 있다
+        - 얘는 config에 추가 해줘야한다.
+        - 근데 보통 이렇게 수동 빈등록 안하고 componentscan 하는게 낫긴함
+    - ItemServiceV2
+        - ItemRepositoryV2와 ItemQueryRepositoryV2를 주입받는다.
+        - save, update, findByID는 간단한 CRUD이니 ItemRepositoryV2를 사용
+        - findItems는 복잡한 쿼리니 ItemQueryRepositoryV2를 사용함
+    - V2Config
+        - return new JpaItemRepositoryV3(em); 얘는 TestDataInit을 위해 남겨둔다
+- 트랜잭션 매니저 선택
+    - JPA, 스프링 데이터 JPA, Querydsl은 모두 JPA 기술을 사용하는 것이기 때문에 트랜잭션 매니저로 JpaTransactionManager 를 선택하면 된다. 해당 기술을 사용하면 스프링 부트는 자동으로 JpaTransactionManager 를 스프링 빈에 등록한다. 그런데 JdbcTemplate , MyBatis 와 같은 기술들은 내부에서 JDBC를 직접 사용하기 때문에 DataSourceTransactionManager 를 사용한다. 따라서 JPA와 JdbcTemplate 두 기술을 함께 사용하면 트랜잭션 매니저가 달라진다. 결국 트랜잭션을 하나로 묶을 수 없는 문제가 발생할 수 있다. 그런데 이 부분은 걱정하지 않아도 된다. JpaTransactionManager의 다양한 지원 JpaTransactionManager 는 놀랍게도 DataSourceTransactionManager 가 제공하는 기능도 대부분 제공 한다. JPA라는 기술도 결국 내부에서는 DataSource와 JDBC 커넥션을 사용하기 때문이다. 따라서 JdbcTemplate , MyBatis 와 함께 사용할 수 있다. 결과적으로 JpaTransactionManager 를 하나만 스프링 빈에 등록하면, JPA, JdbcTemplate, MyBatis 모두를 하나의 트랜잭션으로 묶어서 사용할 수 있다. 물론 함께 롤백도 할 수 있다
+    - 주의점 : 이렇게 JPA와 JdbcTemplate을 함께 사용할 경우 JPA의 플러시 타이밍에 주의해야 한다. JPA는 데이터를 변경하면 변경 사항을 즉시 데이터베이스에 반영하지 않는다. 기본적으로 트랜잭션이 커밋되는 시점에 변경 사항을 데이터베이스 에 반영한다. 그래서 하나의 트랜잭션 안에서 JPA를 통해 데이터를 변경한 다음에 JdbcTemplate을 호출하는 경우 JdbcTemplate에서는 JPA가 변경한 데이터를 읽기 못하는 문제가 발생한다. 이 문제를 해결하려면 JPA 호출이 끝난 시점에 JPA가 제공하는 플러시라는 기능을 사용해서 JPA의 변경 내역을 데이 터베이스에 반영해주어야 한다. 그래야 그 다음에 호출되는 JdbcTemplate에서 JPA가 반영한 데이터를 사용할 수 있다
