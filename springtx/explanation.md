@@ -1,0 +1,300 @@
+- Application 데이터 접근 기술
+    - SQLMapper
+        - JdbcTemplate
+        - MyBatis
+        - 개발자는 SQL만 작성하면 해당 SQL의 결과를 객체로 편리하게 매핑해준다. JDBC를 직접 사용할 때 발생하는 여러가지 중복을 제거해주고, 기타 개발자에게 여러가지 편리한 기능을 제공한 다
+    - ORM 관련 기술
+        - JPA, Hibernate
+        - 스프링 데이터 JPA
+        - Queryds
+        - dbcTemplate이나 MyBatis 같은 SQL 매퍼 기술은 SQL을 개발자가 직접 작성해야 하지만, JPA를 사용하면 기본적인 SQL은 JPA가 대신 작성하고 처리해준다. 개발자는 저장하고 싶은 객체를 마치 자바 컬렉션에 저장하 고 조회하듯이 사용하면 ORM 기술이 데이터베이스에 해당 객체를 저장하고 조회해준다.
+        - JPA(인터페이스)는 자바 진영의 ORM 표준이고, Hibernate(구현체)는 JPA에서 가장 많이 사용하는 구현체이다. 자바에서 ORM을 사용할 때는 JPA 인터페이스를 사용하고, 그 구현체로 하이버네이트를 사용한다고 생각하면 된다.
+        - 스프링 데이터 JPA, Querydsl은 JPA를 더 편리하게 사용할 수 있게 도와주는 프로젝트이다. 실무에서는 JPA를 사용하면 이 프로젝트도 꼭! 함께 사용하는 것이 좋다. 개인적으로는 거의 필수라 생각한다
+- 프로젝트 기본 구조
+    - DTO (Data Transfer Object)
+        - 기능은 없고 데이터를 전달만 하는 용도로 사용되는 객체를 뜻한다
+        - 이전에 설명한 ItemSearchCond 도 DTO 역할을 하지만, 이 프로젝트에서 Cond 는 검색 조건으로 사용한다 는 규칙을 정했다. 따라서 DTO를 붙이지 않아도 된다. ItemSearchCondDto 이렇게 하면 너무 복잡해진다. 그리고 Cond 라는 것만 봐도 용도를 알 수 있다
+        -  service 패키지들이 repository 패키지를 호출함으로 ItemUpdateDto는 repository에 위치하는게 맞다. dto를 제공하는 마지막단이 repository이니까
+    - @EventListener(ApplicationReadyEvent.class)
+        - 스프링 컨테이너가 완전히 초기화를 다 끝내고, 실행 준비가 되었을 때 발생하는 이벤트이다. 스프링이 이 시점에 해당 애노테이션이 붙은 initData() 메서드 를 호출해준다.
+        - 참고로 이 기능 대신 @PostConstruct 를 사용할 경우 AOP 같은 부분이 아직 다 처리되지 않은 시점에 호출될 수 있기 때문에, 간혹 문제가 발생할 수 있다. 예를 들어서 @Transactional 과 관련된 AOP가 적 용되지 않은 상태로 호출될 수 있다.
+        - @EventListener(ApplicationReadyEvent.class) 는 AOP를 포함한 스프링 컨테이너가 완전히 초기화 된 이후에 호출되기 때문에 이런 문제가 발생하지 않는다.
+    - ItemServiceApplication
+        - @Import(MemoryConfig.class) : 앞서 설정한 MemoryConfig 를 설정 파일로 사용한다.
+        - scanBasePackages = "hello.itemservice.web" : 여기서는 컨트롤러만 컴포넌트 스캔을 사용하고, 나머지는 직접 수동 등록한다. 그래서 컴포넌트 스캔 경로를 hello.itemservice.web 하위로 지정했다.
+        - @Profile("local") : 특정 프로필의 경우에만 해당 스프링 빈을 등록한다. 여기서는 local 이라는 이름의 프로필이 사용되는 경우에만 testDataInit 이라는 스프링 빈을 등록한다.
+            - /src/test/resources에는 profile 이름으로 test라 설정했음
+- *Profile*
+    - 스프링은 로딩 시점에 application.properties 의 spring.profiles.active 속성을 읽어서 프로필로 사 용한다. 이 프로필은 로컬(나의 PC), 운영 환경, 테스트 실행 등등 다양한 환경에 따라서 다른 설정을 할 때 사용하는 정보이다. 예를 들어서 로컬PC에서는 로컬 PC에 설치된 데이터베이스에 접근해야 하고, 운영 환경에서는 운영 데이터베이스에 접근해야 한다면 서로 설정 정보가 달라야 한다. 심지어 환경에 따라서 다른 스프링 빈을 등록해야 할 수 도 있다. 프로 필을 사용하면 이런 문제를 깔끔하게 해결할 수 있다
+- JdbcTemplate
+    - JdbcTemplate은 spring-jdbc 라이브러리에 포함되어 있는데, 이 라이브러리는 스프링으로 JDBC를 사용할 때 기본으로 사용되는 라이브러리이다. 그리고 별도의 복잡한 설정 없이 바로 사용할 수 있다
+    - 단점 : 동적 SQL을 해결하기 어렵다
+    - JdbcTemplateItemRepositoryV1
+        - KeyHolder는 Spring JDBC에서 자동 증가(autoincrement) 값을 불러오기위한 객체이다. 데이터베이스에 INSERT 문을 실행한 후에 자동으로 생성된 기본 키(primary key)를 추출하여 애플리케이션에서 사용할 수 있도록 해줍니다.
+            - 데이터를 저장할 때 PK 생성에 identity (auto increment) 방식을 사용하기 때문에, PK인 ID 값을 개발자가 직접 지정하는 것이 아니라 비워두고 저장해야 한다. 그러면 데이터베이스가 PK인 ID를 대신 생성해준다.
+            - 문제는 이렇게 데이터베이스가 대신 생성해주는 PK ID 값은 데이터베이스가 생성하기 때문에, 데이터베이스에 INSERT가 완료 되어야 생성된 PK ID 값을 확인할 수 있다.
+            - KeyHolder 와 connection.prepareStatement(~) 를 사용해서 id 를 지정해주면 INSERT 쿼리 실행 이후에 데이터베이스에서 생성된 ID 값을 조회할 수 있다.
+            - keyholder로 가져온 디비의 id를 내 item 객체의 내부 id에 저장하는 건듯
+        - findById는 RowMapper< Item>를 사용함 (ResultSet은 내부에 있는 커서( cursor )를 이동해서 다음 데이터를 조회할 수 있다)
+        - spring boot가 자동으로 dataSource와 txManager를 등록해준다. 대신 application.properties에 등록을 해줘야한다.
+    - JdbcTemplateItemRepositoryV2
+        - 파라미터를 순서대로 바인딩 하는 것은 편리하기는 하지만, 순서가 맞지 않아서 버그가 발생할 수도 있으므로 주의해서 사용해야 한다.
+        - JdbcTemplate은 이런 문제를 보완하기 위해 NamedParameterJdbcTemplate 라는 이름을 지정해서 파라미터를 바인딩 하는 기능을 제공한다
+        - *BeanPropertySqlParameterSource*(item)을 사용해 item의 멤버 변수에 맞게 sql 쿼리에 파라미터를 넘김
+        - itemRowMapper()도 return BeanPropertyRowMapper .newInstance(Item.class); 로 간략히 표현 가능. 그러면 resultset 이용해서 item의 멤버변수들 이름으로 다 넣어줌
+        - V2 생성자를 보면 의존관계 주입은 dataSource 를 받고 내부에서 NamedParameterJdbcTemplate 을 생성해서 가지고 있다. 스프링에서는 JdbcTemplate 관련 기능을 사용할 때 관례상 이 방법을 많이 사용한다
+        - findById()
+            - Map< String, Object> param = Map.of("id", id);
+            - id 값을 Map에 저장하여 SQL 쿼리에 전달할 파라미터를 준비합니다.
+        - update()
+            - MapSqlParameterSource : 맵과 유사한 기능
+            - itemId도 같이 넣어줘야하기에 빈프로퍼티sql파라미터소스 대신 저 맵파라미터소스를 사용했음
+    - JdbcTemplateItemRepositoryV3
+        - INSERT SQL를 직접 작성하지 않아도 되도록 SimpleJdbcInsert 라는 편리한 기능을 제공한 다
+        - @SpringBootTest
+            - ItemRepositoryTest 는 @SpringBootTest 를 사용한다. @SpringBootTest 는 @SpringBootApplication 를 찾아서 설정으로 사용한다.
+    - H2 데이터베이스를 용도에 따라 2가지로 구분
+        - jdbc:h2:tcp://localhost/~/test local 에서 접근하는 서버 전용 데이터베이스
+        - jdbc:h2:tcp://localhost/~/testcase 테스트케이스에서 사용하는 전용 데이터베이스 <- pkc10에 testcase.mv.db 생성된걸 확인할 수 있다
+    - 트랜잭션과 롤백 전략
+        - 테스트가 끝나고 나서 트랜잭션을 강제로 롤백해버리면 데이터가 깔끔하게 제거된다.
+        - 테스트를 하면서 데이터를 이미 저장했는데, 중간에 테스트가 실패해서 롤백을 호출하지 못해도 괜찮다. 트랜잭션을 커 밋하지 않았기 때문에 데이터베이스에 해당 데이터가 반영되지 않는다
+        - 테스트는 각각의 테스트 실행 전 후로 동작하는 *@BeforeEach*, *@AfterEach*라는 편리한 기능을 제공한다.
+        - PlatformTransactionManager (데이터소스와 마찬가지로 트잭매니저는 스프링에서 자동으로 주입해줌)을 선언해주고 이 객체로 트잭 시작 및 롤백을 before/aftereach로 정의해준다
+        - 스프링은 테스트 데이터 초기화를 위해 트랜잭션을 적용하고 롤백하는 방식을 *@Transactional* 애노테이션 하나로 깔끔하게 해결해준다.
+        - 스프링이 제공하는 @Transactional 애노테이션은 로직이 성공적으로 수행되면 커밋하도록 동작한다. 그런데 @Transactional 애노테이션을 *테스트에서 사용하면 아주 특별하게 동작*한다. @Transactional 이 테스트에 있으면 스프링은 테스트를 트랜잭션 안에서 실행하고, 테스트가 끝나면 트랜잭션을 자동으로 롤백시켜 버린다. 만약 눈으로 디비에 저장 잘 되는지 확인해보고 싶으면 @Commit 혹은 @Rollback(false) 넣어주면 확인 가능하다
+    - 임베디드 모드
+        - H2 데이터베이스는 자바로 개발되어 있고, JVM안에서 메모리 모드로 동작하는 특별한 기능을 제공한다. 그래서 애플 리케이션을 실행할 때 H2 데이터베이스도 해당 JVM 메모리에 포함해서 함께 실행할 수 있다. DB를 애플리케이션에 내장해서 함께 실행한다고 해서 임베디드 모드(Embedded mode)라 한다. 물론 애플리케이션이 종료되면 임베디드 모드로 동작하는 H2 데이터베이스도 함께 종료되고, 데이터도 모두 사라진다. 쉽게 이야기해서 애플리케이션에서 자바 메모리를 함께 사용하는 라이브러리처럼 동작하는 것이다.
+        - 스프링 부트는 SQL 스크립트를 실행해서 애플리케이션 로딩 시점에 데이터베이스를 초기화하는 기능을 제공한다. 위치가 src/test 이다. 이 부분을 주의하자. 그리고 파일 이름도 맞아야 한다 (schema.sql)
+        - 스프링 부트는 개발자에게 정말 많은 편리함을 제공하는데, 임베디드 데이터베이스에 대한 설정도 기본으로 제공한다. 스프링 부트는 데이터베이스에 대한 별다른 설정이 없으면 임베디드 데이터베이스를 사용한다.
+        - test - application.properties의 spring.datasource.url , spring.datasource.username 를 사용하지 않도록 주석처리 하면 데이터베이스에 접근하는 모든 설정 정보가 사라지게 된다. 이렇게 별다른 정보가 없으면 스프링 부트는 임베디드 모드로 접근하는 데이터소스( DataSource )를 만들어서 제공한 다. 바로 앞서 우리가 직접 만든 데이터소스와 비슷하다 생각하면 된다
+        - *정리* : 그래서 사실상 테스트할 ItemRepositoryTest에 @Transactional 붙여주고 테스트용 데이터베이스를 위한 properties에 url과 username 을 따로 기입하지 않으면 알아서 스프링부트가 임베디드 모드로 메모리용 디비 만들어 주고 @Transactional을 인식해서 롤백 시켜준다.
+- MyBatis
+    - 이제부터 본격적으로 MyBatis를 사용해서 데이터베이스에 데이터를 저장해보자. XML에 작성한다는 점을 제외하고는 JDBC 반복을 줄여준다는 점에서 기존 JdbcTemplate과 거의 유사하다
+    - ItemMapper interface
+        - 마이바티스 매핑 XML을 호출해주는 매퍼 인터페이스이다. 이 인터페이스에는 @Mapper 애노테이션을 붙여주어야 한다. 그래야 MyBatis에서 인식할 수 있다. 이 인터페이스의 메서드를 호출하면 다음에 보이는 xml 의 해당 SQL을 실행하고 결과를 돌려준다
+    - MyBatisItemRepository
+        - ItemRepository의 구현체이다 (ItemMapper의 구현체가 아님)
+        - 단순히 ItemMapper 에 기능을 위임한다
+        - private final ItemMapper itemMapper; 로 의존관계를 주입 받는다. @Mapper가 붙어있기에 mybatis에서 인식하고 스프링에 등록해주기 때문에 가능한 것.
+        - update 동작의 경우 itemMapper.update(itemId, updateParam); 이런식으로 Mapper에 파라미터를 넘기면 맵퍼가 xml을 보고 맵핑시켜서 sql을 실행시킨다
+    - MyBatisConfig
+        - 의존관계 주입을 dataSource로 부터 받는게 아니라 itemMapper이기에 변경해준다. 데이터소스나 트잭매니저는 mybatis에서 알아서 연결시켜준다.
+    - *동적 프록시 기술*
+        - ItemMapper 매퍼 인터페이스의 구현체가 없는데 어떻게 동작한 것일까? MyBatis 스프링 연동 모듈에서 자동으로 처리해주기 떄문임
+        1. 애플리케이션 로딩 시점에 MyBatis 스프링 연동 모듈은 @Mapper 가 붙어있는 인터페이스를 조사한다.
+        2. 해당 인터페이스가 발견되면 동적 프록시 기술을 사용해서 ItemMapper 인터페이스의 구현체를 만든다.
+        3. 생성된 구현체를 스프링 빈으로 등록한다
+- JPA
+    - Item class
+        - *@Entity*
+            - Item 클래스에 를 넣어줘서 JPA에서 관리하는 객체로 설정한다.
+            - 즉 테이블과 맵핑이 돼서 관리되는 객체가 된다.
+            - *@Table(name = "item")*
+                - 객체 명과 동일하면 생략 가능
+        - *@Id*
+            - 해당 어노테로 PK를 설정한다.
+        - *@GeneratedValue(strategy = GenerationType.IDENTITY)*
+            - 디비에서 오토인크리먼트로 값을 하나씩 넣어주기 위해 설정
+        - *@Column(name = "item_name")*
+            - String itemName에 붙여주면 해당 변수가 데이터베이스의 item_name으로 맵핑됨을 명시
+            - price처럼 컬럼명이 동일하면 안 붙여줘도 된다.
+            - length = 10 처럼 길이 명시 가능
+            - 사실 스프링부트는 itemName을 item_name으로 변환해주는 규칙을 갖고 있기에 지금 상황에선 제거해줘도 상관 없긴 함. 이름이 많이 다른 경우 붙여줘야함
+        - JPA는 Public 또는 Protected의 기본 생성자가 필수이다
+    - JpaItemRepository
+        - JPA의 모든 데이터 변경(등록, 수정, 삭제)은 트랜잭션 안에서 이루어져야 한다. 조회는 트 랜잭션이 없어도 가능하다. 변경의 경우 일반적으로 서비스 계층에서 트랜잭션을 시작하기 때문에 문제가 없다. 하지만 이번 예제에서는 복잡한 비즈니스 로직이 없어서 서비스 계층에서 트랜잭션을 걸지 않았다. JPA에서는 데 이터 변경시 트랜잭션이 필수다. 따라서 리포지토리에 트랜잭션을 걸어주었다. 다시 한 번 강조하지만 *일반적으로는 비즈니스 로직을 시작하는 서비스 계층에 트랜잭션을 걸어주는 것이 맞다.*
+        - *EntityManager*
+            - private final EntityManager em;
+            - 생성자를 보면 스프링을 통해 엔티티 매니저( EntityManager ) 라는 것을 주입받은 것을 확인할 수 있다. JPA의 모든 동작은 엔티티 매니저를 통해서 이루어진다. 엔티티 매니저는 내부에 데이터소스를 가지고 있고, 데이터베이스에 접근할 수 있다.
+        - update()
+            - itemId(PK)로 조회해서 새로운 객체에 조회정보를 담은 후 그 객체에 setItemName, setPrice등으로 변경을 해주면 따로, 그 객체를 원본에 따로 덮어쓰지 않아도 신기하게 자동으로 반영을 시켜준다.
+            - JPA가 내부에 스냅샷을 떠놓고 변경 사항을 다 인지하고 있고 transaction이 커밋되는 시점에 쿼리를 날리기 떄문임. 즉 Entity에 변경됨을 감지하고 업데이트 시킨다.
+            - save를 하면 *JPA 내부 캐시*에 잠깐 저장 되어 있는다 그래서 update를 해도 캐시에서 값이 바뀐다 그렇다면 find했을때 jpa 캐시에 있는 데이터를 조회한다. 실제 update를 보고 싶으면 @Commit을 붙이면 볼 수 있다.
+            - JPA는 트랜잭션이 커밋되는 시점에, 변경된 엔티티 객체가 있는지 확인한다. 특정 엔티티 객체가 변경된 경우에 는 UPDATE SQL을 실행한다. JPA가 어떻게 변경된 엔티티 객체를 찾는지 명확하게 이해하려면 영속성 컨텍스트라는 JPA 내부 원리를 이해해 야 한다. 이 부분은 JPA 기본편에서 자세히 다룬다. 지금은 트랜잭션 커밋 시점에 JPA가 변경된 엔티티 객체를 찾아서 UPDATE SQL을 수행한다고 이해하면 된다. 테스트의 경우 마지막에 트랜잭션이 롤백되기 때문에 JPA는 UPDATE SQL을 실행하지 않는다. 테스트에서 UPDATE SQL을 확인하려면 @Commit 을 붙이면 확인할 수 있다.
+        - findAll()
+            - String jpql = "select i from Item i";
+                - jpql : 객체 쿼리 언어
+                - 이때 Item은 디비가 아닌 내 자바 Item 엔티티 객체를 말한다
+                - i는 아이템 엔티티의 별칭(alias)이다. 이걸로 JPA가 i.itemName 이런식으로 찾는다 (findAll의 동적쿼리에 의해. 당연히 itemMapper.xml 이거랑은 상관 없는거임)
+            - em.createQuery(jpql, Item.class);
+                - 반환형이 Item.class
+            - JPA도 동적쿼리에 약하다
+            - SQL이 테이블을 대상으로 한다면, JPQL은 엔티티 객체를 대상으로 SQL을 실행한다 생각하면 된다. 엔티티 객체를 대상으로 하기 때문에 from 다음에 Item 엔티티 객체 이름이 들어간다. 엔티티 객체와 속성의 대소문 자는 구분해야 한다
+        - 실무에서는 Querydsl로 지저분한 동적쿼리 문제를 해결함. 사실상 필수
+    - 예외처리
+        - EntityManager 는 순수한 JPA 기술이고, 스프링과는 관계가 없다. 따라서 엔티티 매니저는 예외가 발생하면 JPA 관련 예외를 발생시킨다
+        - @Repository 가 붙은 클래스는 컴포넌트 스캔의 대상이 된다. @Repository 가 붙은 클래스는 예외 변환 AOP의 적용 대상이 된다. 스프링과 JPA를 함께 사용하는 경우 스프링은 JPA 예외 변환기 ( PersistenceExceptionTranslator )를 등록한다. 예외 변환 AOP 프록시는 JPA 관련 예외가 발생하면 JPA 예외 변환기를 통해 발생한 예외를 스프링 데이 터 접근 예외로 변환한다
+            - @Controller는 컴포넌트 스캔 대상임과 동시에 mvc 기능을 사용한다는 추가적인 기능이 있고, @Service는 그냥 깡통임 즉 컴포넌트 스캔 대상임만 인식됨, @Repository는 컴스 대상 + 예외 변환 AOP의 적용 대상이 된다
+        - 결과적으로 리포지토리에 @Repository 애노테이션만 있으면 스프링이 예외 변환을 처리하는 AOP를 만들어준다. 즉 JPA 에러를 던지는게 아니라 스프링 에러를 던지도록 한다.
+        - *AOP 프록시*
+            - 정의:
+                - AOP(Aspect-Oriented Programming)에서 핵심 비즈니스 로직에 부가 기능(예: 로깅, 트랜잭션)을 주입하기 위해 사용하는 객체입니다.
+                - 대상 객체(Target Object) 대신 대리(Proxy) 객체가 메서드를 호출하면서 부가 기능을 수행합니다.
+            - 작동 방식:
+                1. 클라이언트가 메서드를 호출하면,
+                2. 프록시 객체가 먼저 호출을 가로챕니다.
+                3. 부가 기능(예: 로깅, 트랜잭션)을 수행한 후,
+                4. 대상 객체의 실제 메서드를 호출합니다.
+                5. 메서드 실행 결과를 클라이언트에 반환합니다.
+            - AOP 프록시의 유형:
+                - 1. JDK 동적 프록시 (JDK Dynamic Proxy)
+                    - 인터페이스를 구현한 클래스에만 적용됩니다.
+                    - java.lang.reflect.Proxy를 사용합니다.
+                - 2. CGLIB 프록시
+                    - 클래스를 상속하여 프록시 객체를 생성합니다.
+                    - 인터페이스가 없는 클래스에도 적용할 수 있습니다.
+                    - 메서드 오버라이딩 방식으로 동작합니다.
+- Spring data JPA
+    - SpringDataJpaItemRepository
+        - JpaRepository 인터페이스를 상속받는 인터페이스
+        - < 엔티티, pk 타입> 으로 설정해준다
+        - 이렇게만 선언해주면 기본적인 CRUD는 다 가능함
+    - 단순히 itemServiceV1 코드 대신 Springdata 주입 받아서 repository에 명시된대로 쓰면 안되나 생각 들 수 있지만 그럴 수 없음 (ItemService 는 ItemRepository 에 의존하기 때문에 ItemService 에서 SpringDataJpaItemRepository 를 그대로 사용할 수 없다)
+    - JpaItemRepositoryV2
+        - 여기서 springdata를 주입받는다
+        - 그리고 save(), update() 등의 메서드에 spring data를 리턴하거나 사용하는 방식을 쓴다
+        - 예를 들어 save() 메서드의 return repository.save(item)에서 save는 springdata에서 제공하는 거임
+    - itemService1이 springdatajpa를 주입 받지 않고 JpaItemRepositoryV2가 springdatajpa를 주입받고 그걸 거쳐서 사용하는 형태는, 유지보수 관점에서 ItemService 를 변경하지 않고, ItemRepository 의 구현체를 변경할 수 있는 장점이 있다. 그러니까 DI, OCP 원칙을 지킬 수 있다는 좋은 점이 분명히 있다. 하지만 반대로 구조가 복잡해지면서 어 댑터 코드와 실제 코드까지 함께 유지보수 해야 하는 어려움도 발생한다
+        - *너무 DI, OCP 원칙을 고수하려하면 복잡한 어댑터들이 생겨나고 이는 코드 구조를 복잡하게 만든다*
+- QueryDSL
+    - JPA, SQL 같은 기술들을 위해 type-safe SQL을 만드는 프레임워크이다. 컴파일 시점에 sql 오류를 다 잡아 줄 수 있다는 장점이 있음. 즉 서비스 하다가 쿼리문 띄어쓰기 잘못해서 생기는 문제를 사전에 방지해줌
+    - Entity를 읽어서 Qclass를 만들어줌
+    - build/generated/sources/annotationProcessor/java/main
+    - /hello.itemservice.domain 위치에 Qitem 클래스가 생성된걸 확인할 수 있다
+    - 이걸 코드에 가져다 쓸 수 있다
+    - JpaItemRepositoryV3
+        - JPAQueryFactory를 선언해야 Querydsl(Jpql의 빌더 역할)을 사용할 수 있다
+        - 나머지 메서드는 기본 JPA와 동일하지만 동적 쿼리를 처리하는 findAll을 Querydsl 형태로 수정함 이때 Qitem을 쓴다. 이때 Qitem.item이라 하지 않고 Qitem을 static import 시켜서 간단히 item으로 쓴다
+- 복잡한 코드 구조를 개선 (SpringDataJPA + QueryDSL)
+    - save, update 같은 간단한 기능은 기본 JPA를 쓰고 복잡한것만 QueryDSL을 쓰도록 구조를 개선하자
+    - 이렇게 둘을 분리하면 기본 CRUD와 단순 조회는 스프링 데이터 JPA가 담당하고, 복잡한 조회 쿼리는 Querydsl이 담당하게 된다. 물론 ItemService 는 기존 ItemRepository 를 사용할 수 없기 때문에 코드를 변경해야 한다.
+    - ItemRepositoryV2
+        - JpaRepository 를 인터페이스 상속 받아서 스프링 데이터 JPA의 기능을 제공하는 리포지토리가 된다.
+        - 기본 CRUD는 이 기능을 사용하면 된다. 여기에 추가로 단순한 조회 쿼리들을 추가해도 된다
+        - 얘는 config에 추가 안해줘도 된다 스프링이 알아서 빈등록 해준다
+    - ItemQueryRepositoryV2
+        - Querydsl을 사용해서 복잡한 쿼리 기능을 제공하는 리포지토리이다.
+        - Querydsl을 사용한 쿼리 문제에 집중되어 있어서, 복잡한 쿼리는 이 부분만 유지보수 하면 되는 장점이 있다
+        - 얘는 config에 추가 해줘야한다.
+        - 근데 보통 이렇게 수동 빈등록 안하고 componentscan 하는게 낫긴함
+    - ItemServiceV2
+        - ItemRepositoryV2와 ItemQueryRepositoryV2를 주입받는다.
+        - save, update, findByID는 간단한 CRUD이니 ItemRepositoryV2를 사용
+        - findItems는 복잡한 쿼리니 ItemQueryRepositoryV2를 사용함
+    - V2Config
+        - return new JpaItemRepositoryV3(em); 얘는 TestDataInit을 위해 남겨둔다
+    - 트랜잭션 매니저 선택
+        - JPA, 스프링 데이터 JPA, Querydsl은 모두 JPA 기술을 사용하는 것이기 때문에 트랜잭션 매니저로 JpaTransactionManager 를 선택하면 된다. 해당 기술을 사용하면 스프링 부트는 자동으로 JpaTransactionManager 를 스프링 빈에 등록한다. 그런데 JdbcTemplate , MyBatis 와 같은 기술들은 내부에서 JDBC를 직접 사용하기 때문에 DataSourceTransactionManager 를 사용한다. 따라서 JPA와 JdbcTemplate 두 기술을 함께 사용하면 트랜잭션 매니저가 달라진다. 결국 트랜잭션을 하나로 묶을 수 없는 문제가 발생할 수 있다. 그런데 이 부분은 걱정하지 않아도 된다. JpaTransactionManager의 다양한 지원 JpaTransactionManager 는 놀랍게도 DataSourceTransactionManager 가 제공하는 기능도 대부분 제공 한다. JPA라는 기술도 결국 내부에서는 DataSource와 JDBC 커넥션을 사용하기 때문이다. 따라서 JdbcTemplate , MyBatis 와 함께 사용할 수 있다. 결과적으로 JpaTransactionManager 를 하나만 스프링 빈에 등록하면, JPA, JdbcTemplate, MyBatis 모두를 하나의 트랜잭션으로 묶어서 사용할 수 있다. 물론 함께 롤백도 할 수 있다
+        - 주의점 : 이렇게 JPA와 JdbcTemplate을 함께 사용할 경우 JPA의 플러시 타이밍에 주의해야 한다. JPA는 데이터를 변경하면 변경 사항을 즉시 데이터베이스에 반영하지 않는다. 기본적으로 트랜잭션이 커밋되는 시점에 변경 사항을 데이터베이스 에 반영한다. 그래서 하나의 트랜잭션 안에서 JPA를 통해 데이터를 변경한 다음에 JdbcTemplate을 호출하는 경우 JdbcTemplate에서는 JPA가 변경한 데이터를 읽기 못하는 문제가 발생한다. 이 문제를 해결하려면 JPA 호출이 끝난 시점에 JPA가 제공하는 플러시라는 기능을 사용해서 JPA의 변경 내역을 데이 터베이스에 반영해주어야 한다. 그래야 그 다음에 호출되는 JdbcTemplate에서 JPA가 반영한 데이터를 사용할 수 있다
+- 스프링 트랜잭션 이해
+    - TxBasicTest
+        - TransactionSynchronizationManager.isActualTransactionActive의 결과 값으로 트잭이 실제로 일어났는지 알 수 있다.
+        - *스프링 컨테이너에 트랜잭션 프록시 등록*
+            - @Transactional 애노테이션이 특정 클래스나 메서드에 하나라도 있으면 트랜잭션 AOP는 프록시를 만들어 서 스프링 컨테이너에 등록한다. 그리고 실제 basicService 객체 대신에 프록시인 basicService$ $CGLIB 를 스프링 빈에 등록한다. 그리고 프록시는 내부에 실제 basicService 를 참조하게 된다. 여기서 핵 심은 실제 객체 대신에 프록시가 스프링 컨테이너에 등록되었다는 점이다
+            - 클라이언트인 txBasicTest 는 스프링 컨테이너에 @Autowired BasicService basicService 로 의 존관계 주입을 요청한다. 스프링 컨테이너에는 실제 객체 대신에 프록시가 스프링 빈으로 등록되어 있기 때문에 프록시를 주입한다.
+            - 프록시는 BasicService 를 상속해서 만들어지기 때문에 다형성을 활용할 수 있다. 따라서 BasicService 대신에 프록시인 BasicService$ $ CGLIB 를 주입할 수 있다
+    - InternalCallV1Test
+        - *프록시 방식의 AOP 한계*
+        - 우선 internal()에 트잭이 붙어있기 때문에 CallService에 대해서 프록시 객체가 생성된다. InternalCallV1Test$ CallService$ $ SpringCGLIB$ $ 0
+        - CallService static class의 external()은 트잭이 안 붙었고 internal()은 @Transactional이 붙었다. 근데 external이 internal을 호출하는 구조다.
+        - externalCall() 메서드를 호출하면 external()과 internal() 모두 트잭이 false인걸 확인할 수 있다
+        - 자바 언어에서 메서드 앞에 별도의 참조가 없으면 this 라는 뜻으로 자기 자신의 인스턴스를 가리킨다. 결과적으로 자기 자신의 내부 메서드를 호출하는 this.internal() 이 되는데, 여기서 this 는 자기 자신을 가리키 므로, 실제 대상 객체( target )의 인스턴스를 뜻한다. 결과적으로 이러한 내부 호출은 프록시를 거치지 않는다. 따라서 트랜잭션을 적용할 수 없다. 결과적으로 target 에 있는 internal() 을 직접 호출하게 된 것이다
+        - 그렇다면 이 문제를 어떻게 해결할 수 있을까? 가장 단순한 방법은 내부 호출을 피하기 위해 internal() 메서드를 별도의 클래스로 분리하는 것이다
+    - InternalCallV2Test
+        - CallService 정적 클래스는 내부에 @Transactional이 없으니 프록시 안 만듦
+        - InternalService 정적 클래스는 프록시 만듦.
+        - 이렇게 구분 시켜 놓으면 external에선 트잭 false고 internal에선 true가 나옴
+        - 스프링 부트 3.0 부터는 public 뿐만 아니라 protected , package-visible (default 접근제한자)에도 트랜잭션이 적용된다.
+            - 트랜잭션은 주로 *비즈니스 로직의 시작점*에 걸기 때문에 대부분 외부에 열어준 곳을 시작점으로 사용한다. 이런 이유로 private 메서드에 트랜잭션을 적용할 수 없도록 함
+    - 트랜잭션 AOP 주의 사항 - 초기화 시점
+        - 스프링 초기화 시점에는 트랜잭션 AOP가 적용되지 않을 수 있다
+        - InitTxTest
+            - 초기화 코드(예: @PostConstruct )와 @Transactional 을 함께 사용하면 트랜잭션이 적용되지 않는다
+            - 왜냐하면 초기화 코드가 먼저 호출되고, 그 다음에 트랜잭션 AOP가 적용되기 때문이다. 따라서 초기화 시점에는 해당 메서드에서 트랜잭션을 획득할 수 없다.
+            - 가장 확실한 대안은 ApplicationReadyEvent 이벤트를 사용하는 것이다.
+            - *@EventListener(value = ApplicationReadyEvent.class)*
+                - 이 이벤트는 트랜잭션 AOP를 포함한 스프링이 컨테이너가 완전히 생성되고 난 다음에 이벤트가 붙은 메서드를 호출해 준다. 따라서 init2() 는 트랜잭션이 적용된 것을 확인할 수 있다.
+            - 참고로 이 클래스 코드들이 생성자 주입과 config 설정을 간략히 잘 보여주는거 같음
+    -  readOnly
+        - 트랜잭션은 기본적으로 읽기 쓰기가 모두 가능한 트랜잭션이 생성된다. readOnly=true 옵션을 사용하면 읽기 전용 트랜잭션이 생성된다. 이 경우 등록, 수정, 삭제가 안되고 읽기 기능만 작동한다. (드라이버나 데이터베이스에 따라 정상 동작하지 않는 경우도 있다.) 그리고 readOnly 옵션을 사용하면 읽 기에서 다양한 성능 최적화가 발생할 수 있다.
+        - readOnly 옵션은 크게 3곳에서 적용
+            - 프레임워크
+                - JdbcTemplate은 읽기 전용 트랜잭션 안에서 변경 기능을 실행하면 예외를 던진다. JPA(하이버네이트)는 읽기 전용 트랜잭션의 경우 커밋 시점에 플러시를 호출하지 않는다. 읽기 전용이니 변 경에 사용되는 플러시를 호출할 필요가 없다. 추가로 변경이 필요 없으니 변경 감지를 위한 스냅샷 객체도 생성하지 않는다. 이렇게 JPA에서는 다양한 최적화가 발생한다.
+                - 플러시는 뭐가 변경됐는지를 찾아서 DB에 인서트나 업데이트 쿼리를 보내는 거임.
+            - JDBC 드라이버
+                - 참고로 여기서 설명하는 내용들은 DB와 드라이버 버전에 따라서 다르게 동작하기 때문에 사전에 확인이 필 요하다. 읽기 전용 트랜잭션에서 변경 쿼리가 발생하면 예외를 던진다. 읽기, 쓰기(마스터, 슬레이브) 데이터베이스를 구분해서 요청한다. 읽기 전용 트랜잭션의 경우 읽기(슬레이 브) 데이터베이스의 커넥션을 획득해서 사용한다.
+            - 데이터베이스
+                - 데이터베이스에 따라 읽기 전용 트랜잭션의 경우 읽기만 하면 되므로, 내부에서 성능 최적화가 발생한다
+    - *예외 발생시 스프링 트랜잭션의 기본 정책*
+        - *언체크 예외* (RuntimeException , Error와 그 하위 예외)
+            - 발생 시 롤백
+        - *체크 예외*인 Exception (그 하위 예외)
+            - 발생 시 커밋
+        - *체크 예외 + @Transactional(rollbackFor = Exception.class)*
+            - rollbackFor를 사용하면 체크 예외인 Exception이 발생해도 롤백
+    - 예외 비즈니스 요구사항
+        - 시스템 예외
+            - 주문시 내부에 복구 불가능한 예외가 발생하면 전체 데이터를 롤백한다.
+        - 비즈니스 예외
+            - 주문시 결제 잔고가 부족하면 주문 데이터를 저장하고, 결제 상태를 대기로 처리한다.
+            - 이 경우 고객에게 잔고 부족을 알리고 별도의 계좌로 입금하도록 안내한다.
+            - *이런 경우 roll back 하면 안되니 체크 예외가 발생하게 만들어야 한다*
+- 스프링 트랜잭션 전파
+    - 트잭을 각각 사용하는 것이 아니라 트잭 진행 중인데 추가로 트잭이 수행되는 케이스를 알아보자
+    - 지금부터 설명하는 내용은 트랜잭션 전파의 기본 옵션인 *REQUIRED*를 기준으로 설명
+    - 외부 트잭이 수행 중인데 내부 트잭이 추가로 수행되면 스프링이 외부와 내부를 묶어서 하나의 물리 트잭으로 만들어 준다. 그리고 외부와 내부 각각은 논리 트잭이 된다.
+    - *원칙*
+        - 모든 논리 트랜잭션이 커밋되어야 물리 트랜잭션이 커밋된다.
+        - 하나의 논리 트랜잭션이라도 롤백되면 물리 트랜잭션은 롤백된다
+    - 즉 모든 트랜잭션 매니저를 커밋해야 물리 트랜잭션이 커밋된다. 하나의 트랜잭션 매니저라도 롤백하면 물리 트랜잭션은 롤백된다.
+    - inner_commit()
+        - 외부 트잭 시작한 뒤 isNewTransition()으로 검사해보면 참이고 내부 트잭 시작한뒤 isNewTransition()으로 검사해보면 false가 됨 (스프링이 정한거임). 즉 내부 트랜잭션은 이미 진행중인 외부 트랜잭션에 참여한다. 이 경우 신규 트랜잭션이 아니다
+        - 이 예제에서는 외부 트랜잭션과 내부 트랜잭션이 하나의 물리 트랜잭션으로 묶인다고 설명했다. 그런데 코드를 잘 보면 커밋을 두 번 호출했다. 트랜잭션을 생각해보면 하나의 커넥션에 커밋은 한번만 호출할 수 있다. 커밋이나 롤백을 하면 해당 트랜잭션은 끝나버린다. 스프링은 어떻게 어떻게 외부 트랜잭션과 내부 트랜잭션을 묶어서 하나의 물리 트랜잭션으로 묶어서 동작하게 하는지 자세히 알아보자.
+    - BasicTxTest
+        - 내부 트잭이 commit을 해도 실제로 디비에 commit을 하는건 아니다 외부가 commit 할 때 반영이된다
+        - 즉 내부 트잭을 시작/커밋 할 때는 DB 커넥션을 통해 호출하는 로그를 전혀 확인할 수 없다. 정리하자면 외부 트잭만 물리 트잭을 시작하고 커밋할 수 있다.
+        - *처음 트잭을 시작한 외부 트잭이 실제 물리 트잭을 관리*하는 스프링 정책으로 트잭 중복 커밋 문제를 해결한다.
+        - 구체적으로는 트잭 동기화 매니저에 같은 커넥션을 씀. 최초에 커넥션은 외부에서 처음 만드는거고 내부는 기존 트잭에 참여하는 형태이므로 그 트잭 동기화 매니저에 있는 기존 커넥션을 가져다 쓰는 거다. 그러니 내부는 false를 반환하는거임 당연하게도
+        - 내부 트잭이 롤백하고 외부가 커밋하는 상황에선 내부 트잭이 롤백할때 rollback-only를 마킹하게 된다 (트잭 동기화 매니저 내부에). 그래서 외부가 최종 커밋을 하려고 보니까 *rollback-only*라는 마킹이 있는걸 확인하게 되기에 외부는 결국 롤백을 하게 됨. 그 후 unexpectedRollbackException이란 런타임 예외를 던지다.
+    - *REQUIRES_NEW*
+        - 외부 트잭과 내부 트잭을 완전히 분리해서 사용하는 방법
+        - 커밋과 롤백이 독립적으로 이루어진다
+        - REQUIRES_NEW를 붙여주면 별도의 물리 트잭을 가진게 된다 즉 *DB 커넥션을 따로 사용한다* . 트잭 동기화 매니저에 새로운 커넥션을 생성해서 보관해 놓는다
+            - setPropagationBehavior (TransactionDefinition. PROPAGATION_REQUIRES_NEW);
+            - 혹은 @Transactional(propagation = Propagation.REQUIRES_NEW)
+        - 이 상태에서 내부 트잭이 시작하게 되면 log 찍어보면 "suspending current transaction" 이라는 문장이 뜨면서 히카리에서 새로운 커넥션을 가져오는걸 확인할 수 있다. 당연히 isNewTransaction()도 true가 된다. 내부 트잭이 그걸로 롤백을 하면 트잭 종료되고 release(종료 or 커넥션 풀에 반납)가 된 후 기존 미뤄두었던 suspended 된 외부 트잭이 다시 resuming 된다.
+        - 잘못 사용하면 고객 요청이 500인데 디비에 커넥션이 1000개가 생성되어서 성능 이슈가 발생할 수 있다
+        - 실무에서는 Required만 쓰고 아주 가끔 Required_new를 쓴다. 나머지 옵션은 거의 안 쓴다.
+- 스프링 트랜잭션 전파 활용
+    - 이전의 트잭 전파 원칙을 실제 예시로 구현해보는 것 뿐임
+    - MemberServiceTest, MemberService, MemberRepository, LogRepository 상황
+    - Service가 외부 트잭, Member와 log가 내부 트잭인 상황에 대한 시나리오이다. Service -> (Member, Log)
+    - 시나리오 1
+        - service off, member on, log on
+        - Service 계층에 transaction 안 붙고 Member의 save와 log의 save에만 붙어 있는 경우 커밋/롤백 시 그냥 알고있던 실행 흐름 정상적으로 작동함
+        - service -> Member(commit), service -> log(rollback) 도 잘 작동함
+            - Member에서 신규 트잭 생성
+            - log에서 신규 트잭 생성
+            - 이니까 서로 독립적으로 잘 동작함
+            - 만약 요구사항이 Member와 log는 무조건 정합성을 가져야 한다는 상황이면 문제가 된다. 그래서 그 둘을 하나의 트잭으로 묶어야 한다.
+    - 시나리오 2
+        - service on, member off, log off
+        - service가 트잭을 시작하므로 member와 log는 같은 트잭을 사용하게 된다. service가 모든 트잭 생성과 마무리를 담당하니 간단하다 (외부 트잭, 내부 트잭 등 복잡한 상황 고려 x)
+        - 즉 같은 스레드를 사용하면 트잭 동기화 매니저는 같은 커넥션을 반환
+        - 참고로 로그에 인서트 쿼리가 찍히는건 실제로 디비에 날리는게 아니라 JPA가 생성하는거임 (플러시와 관련 있음). 실제로 반영되는게 지금은 아니니 문제되는 건 아님
+    - 시나리오 3
+        - service on, member on, log on
+        - 만약 클라A가 service 호출, 클라B가 member만 호출, 클라C가 log만을 호출하고 싶은 상황 즉 각각 트잭이 필요한 상황임
+        - 이런 상황을 해결하기 위해 트잭 전파가 필요한 것
+        - 이전에 학습했듯 service가 신규 트잭을 생성하고 member와 log는 기존 트잭을 이용하게 된다.
+        - member는 commit(정상 동작)했지만 log에서 롤백 발생하면 rollback-only 찍히고 결국 전체적으로 롤백이 되어야 한다. 즉 service에서도 롤백을 시킨다.
+        - 회원과 회원 이력 로그를 처리하는 부분을 하나의 트랜잭션으로 묶은 덕분에 문제가 발생했을 때 회원과 회원 이력 로그가 모두 함께 롤백된다. 따라서 데이터 정합성에 문제가 발생하지 않는다
+    - *시나리오 4*
+        - 로그의 롤백 예외를 잡아서 복구 처리하려는 시나리오
+        - 단순하게 service에서 log가 던지는 예외를 잡아서 정상 흐름으로 반환하려는 시도는 트잭 전파의 상황을 고려해보면 성립할 수 없다. 왜냐하면 log가 rollback-only를 찍으니까 service도 커밋을 하려해도 롤백온리 때문에 무조건 롤백되고 unexpectedRollback 예외 던지기 떄문.
+        - 회원 가입을 시도한 log를 남기는데 실패해도 회원 가입은 유지하려는 정책을 실현하려면? 즉 log 리포지토리가 롤백 되어도 member 리포지토리는 물리적으로 commit 시키는 방법은?
+        - REQUIRES_NEW 사용한다
+            - log 리포지토리에 REQUIRES_NEW를 붙여준다
+            - 이로서 member는 저장, log는 롤백되어도 service는 commit을 할 수 있게 된다. log는 별도의 커넥션을 생성해서 예외를 던졌고, service에서 runtimeexception e를 잡아서 처리했으니까 가능한 시나리오임.
+- **정리** : 클라 A가 service, 클라 B가 member, 클라 C가 log를 사용하려는 각각 독립적인 트잭을 걸어주기 위해선 service, member, log에 모두 @Transactional을 붙여줘야 한다(시나리오 3). 또한 log가 롤백되더라도 member는 commit 해주고 싶으면 log에 requires_new를 붙여주고 service에서 log가 던지는 예외를 잡아 처리한 뒤 최종 commit을 하면 된다 (시나리오 4). 혹은 service보다 앞쪽에 트잭이 안 붙은 로직을 하나 더 둬서 물리 트잭 1 (service-member)과 물리 트잭 2 (log)가 분리 되도록 수행하면 하나의 http 요청이 들어왔을 때 두 개의 커넥션을 생성할 일을 피하게 설계할 수도 있다.
