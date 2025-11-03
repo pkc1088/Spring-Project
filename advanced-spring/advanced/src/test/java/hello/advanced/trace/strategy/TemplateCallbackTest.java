@@ -24,7 +24,7 @@ public class TemplateCallbackTest {
         template.execute(new Callback() {
             @Override
             public void call() {
-                log.info("비즈니스 로직2 실 행");
+                log.info("비즈니스 로직2 실행");
             }
         });
     }
