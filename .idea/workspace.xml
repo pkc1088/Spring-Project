@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b30a94e2-a1e3-4092-a26c-6f872ab9a7da" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/sql/ddl.sql" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/sql/ddl.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/SpringConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/SpringConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/aop/TimeTraceAop.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/aop/TimeTraceAop.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/HelloController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/HomeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/HomeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/MemberController.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/MemberController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/MemberForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/controller/MemberForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/domain/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/domain/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/JdbcTemplateMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/JdbcTemplateMemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/JpaMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/JpaMemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/MemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/MemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/MemoryMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/MemoryMemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/SpringDataJpaMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/repository/SpringDataJpaMemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/service/MemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/java/Pyeon/Pyeon_Spring_Test/service/MemberService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/static/hello-static.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/static/hello-static.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/static/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/hello-template.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/hello-template.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/hello.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/hello.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/members/createMemberForm.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/members/createMemberForm.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/members/memberList.html" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/main/resources/templates/members/memberList.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/repository/MemoryMemberRepositoryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/repository/MemoryMemberRepositoryTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/service/MemberServiceIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/service/MemberServiceIntegrationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/service/MemberServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/_Pyeon_Spring_Test/src/test/java/Pyeon/Pyeon_Spring_Test/service/MemberServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/core/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/AppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/AutoAppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/AutoAppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/HelloLombok.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/HelloLombok.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/MemberApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/MemberApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/OrderApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/OrderApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/annotation/MainDiscountPolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/annotation/MainDiscountPolicy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/common/MyLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/common/MyLogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/DiscountPolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/DiscountPolicy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/FixDiscountPolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/FixDiscountPolicy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/RateDiscountPolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/discount/RateDiscountPolicy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/Grade.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/Grade.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemberServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemoryMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/member/MemoryMemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/order/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/order/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/order/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/order/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/order/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/order/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/web/LogDemoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/web/LogDemoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/hello/core/web/LogDemoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/hello/core/web/LogDemoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/resources/appConfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/resources/appConfig.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/resources/logback.xml" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/resources/logback.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/autowired/AllBeanTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/autowired/AllBeanTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/autowired/AutowiredTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/autowired/AutowiredTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/beandefinition/BeanDefinitionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/beandefinition/BeanDefinitionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextBasicFindTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextBasicFindTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextExtendsFindTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextExtendsFindTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextInfoTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextInfoTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextSameBeanFindTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/beanfind/ApplicationContextSameBeanFindTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/discount/RateDiscountPolicyTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/discount/RateDiscountPolicyTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/lifecycle/BeanLifeCycleTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/lifecycle/BeanLifeCycleTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/lifecycle/NetworkClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/lifecycle/NetworkClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/member/MemberServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/member/MemberServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/order/OrderServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/order/OrderServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/AutoAppConfigTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/AutoAppConfigTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/BeanA.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/BeanA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/BeanB.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/BeanB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/ComponentFilterAppConfigTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/ComponentFilterAppConfigTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/MyExcludeComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/MyExcludeComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/MyIncludeComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scan/filter/MyIncludeComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/PrototypeProviderTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/PrototypeProviderTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/PrototypeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/PrototypeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/SingletonTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/SingletonTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/SingletonWithPrototypeTest1.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/scope/SingletonWithPrototypeTest1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/ConfigurationSingletonTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/ConfigurationSingletonTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/SingletonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/SingletonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/SingletonTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/SingletonTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/StatefulService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/StatefulService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/StatefulServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/singleton/StatefulServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/test/java/hello/core/xml/XmlAppContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/test/java/hello/core/xml/XmlAppContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/item-service/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/item-service/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/itemservice-db/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/itemservice-db/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/itemservice-db/src/main/java/hello/itemservice/ItemServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/itemservice-db/src/main/java/hello/itemservice/ItemServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/itemservice-db/src/test/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/itemservice-db/src/test/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jdbc/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/jdbc/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/HelloData.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/HelloData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/HelloServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/HelloServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestBodyJsonServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestBodyJsonServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestBodyStringServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestBodyStringServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestHeaderServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestHeaderServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestParamServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/request/RequestParamServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseHeaderServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseHeaderServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseHtmlServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseHtmlServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseJsonServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/basic/response/ResponseJsonServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/domain/member/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/domain/member/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/domain/member/MemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/domain/member/MemberRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/ModelView.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/ModelView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/MyView.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/MyView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/ControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/ControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/FrontControllerServletV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/FrontControllerServletV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberFormControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberFormControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberListControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberListControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberSaveControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v1/controller/MemberSaveControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/ControllerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/ControllerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/FrontControllerServletV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/FrontControllerServletV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberFormControllerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberFormControllerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberListControllerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberListControllerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberSaveControllerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v2/controller/MemberSaveControllerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/ControllerV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/ControllerV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/FrontControllerServletV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/FrontControllerServletV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberFormControllerV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberFormControllerV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberListControllerV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberListControllerV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberSaveControllerV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v3/controller/MemberSaveControllerV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/ControllerV4.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/ControllerV4.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/FrontControllerServletV4.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/FrontControllerServletV4.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberFormControllerV4.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberFormControllerV4.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberListControllerV4.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberListControllerV4.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberSaveControllerV4.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v4/controller/MemberSaveControllerV4.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/FrontControllerServletV5.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/FrontControllerServletV5.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/MyHandlerAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/MyHandlerAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/adapter/ControllerV3HandlerAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/adapter/ControllerV3HandlerAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/adapter/ControllerV4HandlerAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/frontcontroller/v5/adapter/ControllerV4HandlerAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberFormServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberFormServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberListServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberListServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberSaveServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servlet/MemberSaveServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberFormServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberFormServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberListServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberListServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberSaveServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/servletmvc/MvcMemberSaveServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/old/MyHttpRequestHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/old/MyHttpRequestHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/old/OldController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/old/OldController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberFormControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberFormControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberListControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberListControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberSaveControllerV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v1/SpringMemberSaveControllerV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v2/SpringMemberControllerV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v2/SpringMemberControllerV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v3/SpringMemberControllerV3.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/java/hello/servlet/web/springmvc/v3/SpringMemberControllerV3.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/members.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/members.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/new-form.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/new-form.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/save-result.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/WEB-INF/views/save-result.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/basic.html" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/basic.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/basic/hello-form.html" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/basic/hello-form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members/new-form.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members/new-form.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members/save.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/main/webapp/jsp/members/save.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servlet/src/test/java/hello/servlet/domain/member/MemberRepositoryTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/servlet/src/test/java/hello/servlet/domain/member/MemberRepositoryTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/HelloData.java" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/HelloData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/LogTestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/LogTestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/requestmapping/MappingClassController.java" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/requestmapping/MappingClassController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/requestmapping/MappingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/src/main/java/hello/springmvc/basic/requestmapping/MappingController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc/src/main/resources/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc/src/main/resources/static/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/exception/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/exception/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/form/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/form/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/login/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/login/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/message/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/message/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/message/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/message/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/thymeleaf-basic/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/thymeleaf-basic/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/typeconverter/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/typeconverter/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/upload/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/upload/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springmvc2/validation/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springmvc2/validation/explanation.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/springtx/explanation.md" beforeDir="false" afterPath="$PROJECT_DIR$/springtx/explanation.md" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="34xNVT3gvFlGcL53KrIg4mjI17M" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/pyeon/Pyeon_Spring/advanced-spring/advanced/build.gradle"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b30a94e2-a1e3-4092-a26c-6f872ab9a7da" name="Changes" comment="" />
+      <created>1762151287017</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1762151287017</updated>
+      <workItem from="1762151288143" duration="14000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
